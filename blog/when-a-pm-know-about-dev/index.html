@@ -1,0 +1,193 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>产品经理懂技术的五大好处 - Lumi Wu</title>
+	<meta name="author" content="Lumi Wu">
+
+	
+	<meta name="description" content="1. 更丰富的产品设计工具 通常我们的产品设计工具有文档、流程图、交互设计。但其实还有更多更好用的工具等待我们去发掘。对技术思维的了解，能够为产品经理提供更多更直观的工具去进行设计。例如： UML类图（不需要太精确）能够替代名词定义，释清对象之间的联系。
+用例能够帮忙厘清用户需求，分解特性点， &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Lumi Wu" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>-->
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="http://cdn.staticfile.org/jquery/1.7.2/jquery.min.js"></script>
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41629738-1', 'auto');
+  ga('send', 'pageview');
+	</script>
+	
+</head>
+
+<body>
+	<header id="header"><div class="inner"><nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/about">About</a></li>
+</ul>
+</nav>
+
+</div></header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">产品经理懂技术的五大好处</h2>
+	<div class="meta">
+		<span class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-12-28T23:30:00+08:00" pubdate data-updated="true">Dec 28<span>th</span>, 2015</time></span> / <span class="tags">
+
+
+	<a class='category' href='/blog/categories/product/'>Product</a>
+
+
+</span>
+	</div>
+	<div class="entry-content"><h2>1. 更丰富的产品设计工具</h2>
+
+<p>通常我们的产品设计工具有文档、流程图、交互设计。但其实还有更多更好用的工具等待我们去发掘。对技术思维的了解，能够为产品经理提供更多更直观的工具去进行设计。例如：</p>
+
+<ul>
+<li><strong>UML类图</strong>（不需要太精确）能够替代名词定义，释清对象之间的联系。</li>
+<li><strong>用例</strong>能够帮忙厘清用户需求，分解特性点，也能方便产品经理体验 DEMO 和进行 sanity 测试。</li>
+<li><strong>时序图</strong>能够帮助产品经理整理子系统和外部系统的调用关系，估算成本、优化策略。</li>
+<li><strong>状态机</strong>能够让关键对象的状态以一种无比清晰的方式表达出来，让整个项目的人一看就懂。</li>
+<li>在面对稍微复杂的特性时，<strong>伪代码</strong>能让产品更好地与研发沟通，梳理并发现问题。</li>
+</ul>
+
+
+<p>最重要的是，以上这些工具的学习成本都不高。<!--more--></p>
+
+<h2>2. 对运算、通信、存储等成本更加敏感</h2>
+
+<p>很多产品决策其实是商业决策，网络通信是否快速、服务器能否HOLD住产品需要的计算能力，这些成本因素也可能决定着产品能否活下去。产品设计的策略可能对实现成本产生巨大的影响，产品经理需要懂得如何优化资源，用最聪明的方式去解决问题。</p>
+
+<p>懂技术的产品，会对这些成本因素更加敏感。这样的产品经理需要对网络通信、数据结构和算法有一定的知识积累，甚至会进行时间复杂度和空间复杂度方面的估算。</p>
+
+<p>其实，<strong>这些因素也会影响用户体验</strong>，特别是外部调用较多的场景。如何优化整个网络请求的时序、如何平衡同步和异步的流程、如何通过交互设计隐藏由于技术限制而产生的体验缺陷，这些决策都能大幅提高产品设计质量。我在做MIUI云名片，以及短信识别机票信息（在一个界面中使用了大量外部网络请求）时，对这点的感受非常强烈。</p>
+
+<h2>3. 了解设计模式</h2>
+
+<p>基础的设计模式，如工厂模式、单例、代理、适配器、观察者模式等等，我认为是产品经理的必修课，非常实用。了解这些设计模式，让我们能对产品的实现方式、难易程度和可扩展性有初步的估算。</p>
+
+<p>然而设计模式这个主题更吸引我的，则是<strong>「N大设计原则」</strong>（有些地方描述为 S.O.L.I.D 五大原则，有些地方则是六大原则、七大原则、十大原则）。这些原则，甚至可以提升到哲学层面，为各种生活决策、个人管理提供指导性的意见，在产品设计上甚至还有豁然开朗的感觉。</p>
+
+<p>DRY原则告诉我们：「Don&rsquo;t Repeat Yourself.」</p>
+
+<p>单一职责原则（SRP）说：「每一个类应该专注于做一件事情。」</p>
+
+<p>依赖倒置原则说：「抽象不应该依赖细节，细节应该依赖抽象；即针对接口编程，不要针对实现编程。」</p>
+
+<p>又如开闭原则（OCP）：「Open for extension, Yet closed for Modification.」</p>
+
+<p>而迪米特法则的那句「低耦合，高内聚」更是经典。</p>
+
+<p>这些设计模式，都是经典。细细品味，妙趣横生。熟悉代码的应该比较好理解，不熟悉的建议找本书来研读。初步了解可以看看<a href="http://www.oodesign.com/">这个网站</a>。</p>
+
+<h2>4. 快速搭建原型的能力</h2>
+
+<p>研发资源总是紧缺的，而产品经理总想做新东西。掌握初级前端技术的产品即可快速搭建一个可用的原型，说不定这样就能拿到投资了呢？</p>
+
+<p>而且浅尝前端技术也并不难，HTML+CSS已经可以搞定大部分场景了，iOS 和 Android 开发也并不难上手。而且现在的傻瓜式开发工具也越来越多了，入门门槛也越来越低。况且，市面上还没有哪款原型软件能比得上用代码直接写出一个来。</p>
+
+<h2>5. 能够更清晰地把握系统的现状</h2>
+
+<p>工程师最讨厌产品哪点？改需求、乱评估工期，还有就是：不懂重构等技术调整对产品的意义，明明很重要的事情，却一直分配不到优先级。</p>
+
+<p>这是产品经理对技术的无知导致的。</p>
+
+<p><strong>随着业务的增长，产品在后台和运维层面都要经过一些调整才能更好地支持业务发展</strong>，这些事情包括但不限于：制造开发工具以缩短开发流程、封装固定的业务流程以增加复用性、购买更多的带宽和服务器、优化性能、重构。</p>
+
+<p>懂技术的产品经理能对系统的现状有一个大致的了解，并且在产品需要以上技术调整时，能够提供合理的资源和优先级支持，更能够帮助统计和表达技术调整对业务的贡献，避免让有价值的事一直沉寂在后方。</p>
+
+<p>——————</p>
+
+<p>说了那么多，最后有一个问题：产品经理懂技术，意味着需要自己会开发吗？</p>
+
+<p>不。</p>
+
+<p>不是因为产品经理不应该懂，而是因为今天的软件开发是一个巨大的工程：前端、后台、算法、运维等等，每一个环节单独提出来都是一整个团队的工作。没有哪个产品经理能够搞定这一切。<strong>我们所需要做的，是理解研发，并且帮助研发做得更好，减少沟通成本、提升业务效益。</strong></p>
+
+<p>至于有些人说的「技术思维和产品思维难以转换」，这只能说是能力问题。你看人家 ponyma，既是技术大牛，同时也能一秒钟变小白用户呢！</p>
+</div>
+
+
+</article>
+
+<section id="comment">
+    <div id="disqus_thread" aria-live="polite"><div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'meiso'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2018
+
+    Lumi Wu
+, Powered by <a href="http://www.octopress.org/">Octopress</a>. <br/> Meiso Theme (based on <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a>) by Lumin Ng
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'meiso';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://luminsense.github.io/blog/when-a-pm-know-about-dev/';
+        var disqus_url = 'http://luminsense.github.io/blog/when-a-pm-know-about-dev/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+</body>
+</html>

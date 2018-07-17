@@ -1,0 +1,189 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>如何撰写设计规范（一） - Lumi Wu</title>
+	<meta name="author" content="Lumi Wu">
+
+	
+	<meta name="description" content="最近，我在撰写微信客户端 Webview 交互设计规范中的一部分。所谓客户端 Webview，即内嵌在微信手机端内部的网页内容，有些是微信本身提供的页面，有些则是第三方接入的 web app。微信支付和公众平台让后者日渐多了起来，所以也需要一个设计规范为今后的 web app 审核作为参考。 &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Lumi Wu" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>-->
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="http://cdn.staticfile.org/jquery/1.7.2/jquery.min.js"></script>
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41629738-1', 'auto');
+  ga('send', 'pageview');
+	</script>
+	
+</head>
+
+<body>
+	<header id="header"><div class="inner"><nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/about">About</a></li>
+</ul>
+</nav>
+
+</div></header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">如何撰写设计规范（一）</h2>
+	<div class="meta">
+		<span class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-07T00:00:00+08:00" pubdate data-updated="true">Jul 7<span>th</span>, 2014</time></span> / <span class="tags">
+
+
+	<a class='category' href='/blog/categories/design/'>Design</a>
+
+
+</span>
+	</div>
+	<div class="entry-content"><p>最近，我在撰写微信客户端 Webview 交互设计规范中的一部分。所谓客户端 Webview，即内嵌在微信手机端内部的网页内容，有些是微信本身提供的页面，有些则是第三方接入的 web app。微信支付和公众平台让后者日渐多了起来，所以也需要一个设计规范为今后的 web app 审核作为参考。</p>
+
+<p>对于自己而言，这是第一次脱离某个具体问题，而去考虑宏观层面的规范定义。虽然离创建一门设计语言还差很远，但这也算是对既有的 iOS 设计语言以及传统网页的设计惯例（convention）在微信范畴内重新封装的过程，自己也有了一些相关的思考。<!--more--></p>
+
+<h2>边界在何方？</h2>
+
+<p>规范看似是简单的概念，但在实际撰写过程中会发现一个问题：规范的度如何把握？哪些需要限制？哪些需要保留自由度？为解决这个问题，要先考虑这份规范输出后的目的：</p>
+
+<ul>
+<li>为微信设计师提供 webview 内容的交互设计标准参考；</li>
+<li>为第三方 web app 接入微信审核提供依据，并且能通过一份明确的规定，解决方案上的争执和沟通问题。</li>
+</ul>
+
+
+<p>所以这份规范的目的有二：一是参考，二是规定。这让我想起了<a href="http://davemalouf.com">Dave Malouf</a>很久之前给过的定义（原文曾发表在<a href="http://uigarden.net">UI Garden</a>上，但这个网站现在已经不复存在了，只能搜索到译文《标准在交互设计和用户界面设计的地位》）：</p>
+
+<blockquote><ul>
+<li><strong>指南（Guideline）</strong>是一个声明，用来协助设计师使用一套解决方案来思考反复发生的问题，这套解决方案<strong>适合多数理想情况，但不是全部</strong>。</li>
+<li><strong>标准（Standard）</strong>是已使用标准的集合，在不同的场景之间，或单个场景的各部分之间… 一个标准也可能实际上是一个解决方案，<strong>它对多样化是排斥的</strong>。</li>
+</ul>
+</blockquote>
+
+<p>参考即是指南，规定即是标准，这份规范应该是两者的结合。由于标准对多样化是排斥的，而这份规范并不需要把整个解决方案列为标准，所以对于大部分问题给出指南，然后通过标准去规定这些问题中需要明确规定的部分。</p>
+
+<p>这样的定义导致了撰写时的<strong>语义规约</strong>：对于一个问题的指南部分，应直接使用普通的陈述语句，对某些自由度比较高的部分也可使用「应该」、「建议」、「可以」、「通常」、「should」等有倾向性的文字描述；而对于标准部分，则使用「必须」、「不要」、「must」等明确的描述。</p>
+
+<h2>重读 iOS Human Interface Guidelines</h2>
+
+<p>两年多前我第一次读 <a href="http://developer.apple.com/library/iOS/documentation/userexperience/conceptual/mobilehig">iOS Human Interface Guidelines</a>，如今我需要参照这份文档的内容和结构，去定义另外一份规范文档。</p>
+
+<p>现在的 iOS HIG 中包含五个部分：</p>
+
+<ul>
+<li>Basics 部分讲了三件事：一是讲 iOS app 的界面层级、导航方式与结构分解（为后后面的 UI Elements 部分铺垫）；二是讲 iOS app 在系统中的上下文；三是穿插地讲一些细节的设计原则。第二点需要特别注意，第三方应用在平台系统的上下文是后续应用内一切行为的基础与起点。</li>
+<li>Design Strategies 的主题是宏观的设计原则，还有苹果推荐的一套设计流程。</li>
+<li>iOS Technologies 中描述了开发者们可以调用的 iOS 系统的能力。对于微信内的 web app 来说，这部分是极具参考价值的。Web app 可以通过 JavaScript API 调用微信的能力，例如关注公众号入口、支付密码框等等。这不仅是关于第三方界面与平台界面切换的交互问题，还是一个用第三方数据填充平台表现层的内容策略问题。</li>
+<li>UI Elements 中定义了一些原生控件和内容视图。需要注意的是，iOS 并未要求应用必须使用提供的 UI Elements，只是说「最好使用」，并且不能用错地方。这是个典型的指南性（而非标准性）规范，给第三方的自由度还是很高的。</li>
+<li>Icon and Image Design 提供了各种图标和图片的标准尺寸以及用处，这一部分的参考意义不大。</li>
+</ul>
+
+
+<p>总体来说，iOS HIG 与微信客户端 webview 规范<strong>都是以平台级产品的角度定义第三方接入应用的表现与行为</strong>。但是，在设计元素上，iOS HIG 只提供了指南而没有标准。微信对设计元素需要有更严格地定义，确定一些标准。此外，iOS HIG 提供了界面的框架和基本控件，但没有提供用来解决一些常用问题的<strong>设计模式（Patterns）</strong>（例如搜索、下拉刷新等）。为了应用内一致性考虑，微信的规范也需要定义一些设计模式。</p>
+
+<h2>定义内容结构</h2>
+
+<p>我们可以得出这份规范的结构：</p>
+
+<ol>
+<li><strong>情景（Context）</strong> 描述 webview 和 web app 会在微信的何处出现，以及出现在各处时的上下文。例如：出现在聊天附件栏服务中的 web app，与出现在「我的钱包」服务列表中的 web app，其微信内的上下文以及用户所处的状态是不同的。我们需要定义出现在不同地方的 webview 在微信的整体流程中处于一个怎样的位置。</li>
+<li><strong>框架（Framework）</strong> 描述 webview 的导航方式：如何显示页面标题、如何与微信原生的 navigation bar 共存，如何执行返回、刷新、退出（关闭）等操作。同时描述 webview 内部的宏观结构，如 header 区域、footer 区域等。</li>
+<li><strong>内容视图与控件（Content Views and Controls）</strong> 定义 webview 中的内容视图与控件，它们是页面上的基本元素，承载了页面中所有的展示和交互功能。</li>
+<li><strong>模式（Patterns）</strong> 定义 webview 中的设计模式，它们是由内容视图与控件组合而成的、可复用性很强的整体结构，用于解决某些经常遇到的问题。</li>
+<li><strong>微信接口（WeChat Abilities）</strong> 定义 webview 通过调用微信 JavaScript API 实现的能力（如关注公众号、收银台），以及在利用这些能力时，webview 必须遵循的交互设计规定和内容策略。</li>
+</ol>
+
+
+<p>为何没有设计原则呢？因为它在这份规范的母文档《WeChat UX》中已经被定义了。</p>
+
+<p>在定义 Content Views and Controllers 部分时，我们遇到了一个问题：一个 table view cell（在 iOS 中是 table view 的子控件），在表单中可以作为 text input（在传统 web 服务中是一个单独的控件），于是这一个元素可以同时被定义为两个控件：一个用 label 和 textfield 作为子元素的 table view cell，和一个普通的 text input。考虑到我们不准备用其他形式表现 text input，我们引入了面向对象编程中的<strong>继承（inherit）</strong>概念：text input（以及存在同样问题的其他 table view cell 控件）继承自 table view cell，作为其子类。虽然这对规范的使用可能不会产生太大影响，但是这个概念可以优化规范文档的内容结构，使其更合理。它还是可复用的。</p>
+
+<p>除此之外，对于控件和模式，我们做了一个语义规约：使用<strong>形式</strong>而非<strong>功用</strong>定义各内容视图与控件的名称，但在内容视图与控件的详细描述下会提供几种常见的使用场景。相反，模式（Patterns）部分将使用<strong>功用</strong>作为名称，因为模式是在特定情景下根据某种目的将内容视图与控件组合而成的结构（如：Search、Address、Phone Number）。规范中<strong>用于定义概念的分类和语义是极度重要的</strong>，利益各方应使用一个合理的术语去描述一件事情，这个术语本身就应该表现了它的某些基本性质。</p>
+
+<p>第一部分先写到这里。</p>
+</div>
+
+
+</article>
+
+<section id="comment">
+    <div id="disqus_thread" aria-live="polite"><div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'meiso'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2018
+
+    Lumi Wu
+, Powered by <a href="http://www.octopress.org/">Octopress</a>. <br/> Meiso Theme (based on <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a>) by Lumin Ng
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'meiso';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://luminsense.github.io/blog/how-to-write-a-design-guideline/';
+        var disqus_url = 'http://luminsense.github.io/blog/how-to-write-a-design-guideline/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+</body>
+</html>

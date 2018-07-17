@@ -1,0 +1,203 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Test-driven Design - Lumi Wu</title>
+	<meta name="author" content="Lumi Wu">
+
+	
+	<meta name="description" content="不要说「我觉得&hellip;」 很多设计师习惯用自己的经验和主观感觉去提出方案，但经验和主观感觉很可能是错误的。以用户为中心的设计，需要以用户心理、用户行为相关的客观事实为依据去执行，而非以设计师的「自我参考」去执行。 使用「自我参考」方式的设计师，经常会陷入多个选项的纠结中， &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Lumi Wu" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>-->
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="http://cdn.staticfile.org/jquery/1.7.2/jquery.min.js"></script>
+	<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41629738-1', 'auto');
+  ga('send', 'pageview');
+	</script>
+	
+</head>
+
+<body>
+	<header id="header"><div class="inner"><nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+	<li><a href="/about">About</a></li>
+</ul>
+</nav>
+
+</div></header>
+	
+		
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Test-driven Design</h2>
+	<div class="meta">
+		<span class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-06T19:00:00+08:00" pubdate data-updated="true">Jan 6<span>th</span>, 2015</time></span> / <span class="tags">
+
+
+	<a class='category' href='/blog/categories/design/'>Design</a>
+
+
+</span>
+	</div>
+	<div class="entry-content"><p><img src="http://lumiwu.com/assets/images/tdd.png" width="620px" height="300px"/></p>
+
+<h2>不要说「我觉得&hellip;」</h2>
+
+<p>很多设计师习惯用自己的经验和主观感觉去提出方案，但经验和主观感觉很可能是错误的。以用户为中心的设计，需要以用户心理、用户行为相关的客观事实为依据去执行，而非以设计师的「自我参考」去执行。</p>
+
+<p>使用「自我参考」方式的设计师，经常会陷入多个选项的纠结中，这样会浪费大量的时间和精力。若以事实为依据去设计，我们应该收集足够的数据、用研和测试结论，并根据这些事实去进行决策。这么做能够让我们不浪费时间而做出正确的决定。</p>
+
+<p>团队成员对设计的讨论和挑战，通常也是「自我参考」方式的。这个时候如果没有客观事实为依据，设计师很容易陷入被动的状态（这让很多设计师产生了「领地意识」的可笑观念），甚至与团队其他决策产生冲突，影响合作效率。而如果这个设计是依据某个事实结论得出的，那么这些质疑便也不足为惧了，设计师也能更好地与其他人协同工作。</p>
+
+<p>所以，以事实为依据的设计是我们追求的目标。但是在实际执行中，我们会发现<strong>设计师获取事实依据的资源非常有限。</strong>已掌握的数据和信息很多时候并不足以对一个新的需求提供充分的依据，在前期进行严谨的用户研究和测试又会耗费过多的时间。</p>
+
+<p>那么在整个过程中，我们如何高效地收集事实依据呢？</p>
+
+<p>受软件开发中 Test-driven Development 的启发，我想到了一种激进的设计过程，叫做 <strong>Test-driven Design</strong>，可供尝试。<!--more--></p>
+
+<p>在传统的设计方法下，设计师会花很多的时间在自己的方案上。但 Test-driven Design（测试驱动的设计）需要我们<strong>逆转思路，将 90% 精力转到寻求事实依据的过程上，将剩下的 10% 用于快速迭代方案</strong>，做到零纠结、零争论，将时间省下来放到多方案、迭代和验证上。</p>
+
+<h2>用最短的时间做原型</h2>
+
+<p>我们的目标是用尽可能短的时间构建一个最小可用化原型（Minimal Viable Prototype，由精益创业的理念启发），以便在设计验证中使用。千万不要在这个阶段输出完整的、包含所有细节的文档性方案（即使这样看起来会比较「专业」）。</p>
+
+<p>How to do?</p>
+
+<ol>
+<li><strong>首先要快。</strong>使用自己最擅长的工具，维护一个高复用性的个人模版库，建立效率最高的 workflow 和工具协作体系，保持设计文件内部的干净和组织性（例如：Visio 的元素分组、PS 和 Sketch 的层次和图层命名），以便后续的快速迭代修改。</li>
+<li>遇到自己不能确定的设计点，或者与其他人有不同意见的设计点时，首先寻找是否有已有的数据和事实支持。若没有，则<strong>避免过多讨论，快速输出多个可行方案</strong>，然后准备投放到下一步骤的验证过程中。避免任何双方都无法被说服的争吵，事实依据才是解决一切的钥匙。</li>
+<li><strong>站在客观的角度，</strong>避免「自我参考」或者「老板参考」的设计。时刻提醒自己：「我所知道、所观察到的，并不一定是对的」。</li>
+<li><strong>避免过度深入地探究未确定的细节。</strong>要记住：现在需要的并不是一个完整的方案文档，而只是一个用于测试和验证的原型。过于精细可能是有害的，这点需要设计师通过主观的判断去平衡。</li>
+</ol>
+
+
+<p>在我的经验中，通常交互设计可以在1-2小时内完成多方案原型的快速构建。对于小规模的需求，这个时间可以被缩短到分钟级别。对于视觉设计，耗费的时间会久一些，但最长不要超过一个工作日。</p>
+
+<p>原型最好是动态的、可操作、高保真的。不过这也视具体的需求而定。</p>
+
+<h2>边做边验证</h2>
+
+<p>设计师需要接触数据、专家和用户，对多方案的质量进行验证和评估。设计验证需要穿插在方案过程中，作为对方案的即时的有力支持。</p>
+
+<p><strong>数据搜寻</strong>是最简单的获取事实依据的方法，能够解决很多纠结点。设计师应有一定的数据分析能力，熟悉自己产品的后台数据系统，并且经常去那里寻找有用的信息。</p>
+
+<p>我们可以使用成本最低的<strong>启发式评估（Heuristic Evaluation）</strong>，通过专家和设计 leader 对方案进行筛选和建议。启发式评估能给设计师一个公开解释和辨析方案的过程，并且能发现一些可能忽略掉的要素。</p>
+
+<p>但启发式评估依然是主观的。在很多时候，我们依然需要客观的用户研究方法。<strong>这些用研方法之所以可行，是因为我们将原来用在纠结方案细节、进行无效讨论的时间节省了下来</strong>。</p>
+
+<ol>
+<li>使用快速、低成本、易执行的用研方法，例如用户访谈、原型测试等。</li>
+<li>需要以对比的方式去执行用研和测试，不仅可以对比设计师的多个方案，也可以对比竞品。</li>
+<li>测试要围绕着有与需求目标紧密相关的针对性指标进行，例如：某个流程耗费的时间、某个分支的短时间PV统计等等。方案在针对性指标的表现能够作为直接的决策依据。</li>
+</ol>
+
+
+<p>在设计验证完成后，利用得到的事实依据修改、精化方案。如果方案内还有分歧点，那么就进行一轮小型迭代，准备下一次的设计验证。每次的设计验证应该越来越轻、越来越快，直到分歧点全部被消灭，我们就得出了理想的方案。这就是 Test-driven 的快速迭代过程。</p>
+
+<p>Test-driven Design 与传统的设计方法不同的地方在于：<strong>方案不再是用研的目的，相反，用研是方案的目的</strong>，就像编程中的 Try &amp; Catch。方案是工具，不是目标。<strong>目标是掌握事实，得到整个需求在用户体验层面的 insight</strong>，方案不过是在这个过程中的附属品。</p>
+
+<h2>长期研究</h2>
+
+<p>既然我们已经把眼界从方案的层面提升到 insight 的层面，那么我们就能看出：设计师的工作并不是一时的内容，而是贯穿在产品生命周期中持续的工作。</p>
+
+<p>那么在设计方案经过开发实现并发布后，我们还能做什么呢？</p>
+
+<ol>
+<li>观察数据，看看之前得出的设计方案是否成功？如果没有成功，反思是哪些元素导致的？这些元素是产品上的，市场上的，还是其他方面的？</li>
+<li>开始从各种渠道进行<strong>长期用户研究</strong>，如：A/B 测试、数据观察、路径分析、用户反馈、社交媒体舆情等等。</li>
+<li><strong>试着发现新的问题！</strong></li>
+</ol>
+
+
+<p>在整个过程中，我们所做事情的核心在于：对产品和用户形成越来越完善的 insight。每一个用研、每一次辨析，都会让我们对产品的 insight 加深一分，都会让我们对需求和方案的把握加强一分。</p>
+
+<h2>总结</h2>
+
+<p>我们发现：<strong>有了足够的事实依据和 insight，方案只是顺其自然的结果！</strong>这就是 Test-driven Design 最强大的一点：这不仅是一种设计方法，而是一套机制，让设计师产生 insight，让解决方案顺其自然出现的机制。所以我们也可以称其为 Insight-driven Design。</p>
+
+<p>这是一个初步的、激进的想法，尚未通过实践验证。但现在的设计师们需要快速对陌生领域建立认识，需要边打边走、边做边学的自我更新和协同心态。传统的、以方案为核心的方法已经不再适用了。而 Test-driven Design，绝对是一种值得尝试的工作方式。</p>
+</div>
+
+
+</article>
+
+<section id="comment">
+    <div id="disqus_thread" aria-live="polite"><div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'meiso'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    </div>
+</section>
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2018
+
+    Lumi Wu
+, Powered by <a href="http://www.octopress.org/">Octopress</a>. <br/> Meiso Theme (based on <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a>) by Lumin Ng
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'meiso';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://luminsense.github.io/blog/test-driven-design/';
+        var disqus_url = 'http://luminsense.github.io/blog/test-driven-design/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+</body>
+</html>
