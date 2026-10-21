@@ -1,90 +1,422 @@
-
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-	<meta charset="utf-8">
-	<title>Lumi's Brick Breaker Demo</title>
-	<meta name="author" content="Lumi Wu">
-
-	
-	<meta name="description" content="Lumi's Brick Breaker Demo">
-	
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-	<link href="/atom.xml" rel="alternate" title="Lumi Wu" type="application/atom+xml">
-	<link rel="canonical" href="">
-	<link href="/favicon.png" rel="shortcut icon">
-	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-	<!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>-->
-	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-	<script src="http://cdn.staticfile.org/jquery/1.7.2/jquery.min.js"></script>
-	<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-41629738-1', 'auto');
-  ga('send', 'pageview');
-	</script>
-	
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05080f" />
+  <title>Brick Breaker Demo</title>
+  <meta name="description" content="Brick Breaker Demo —— 一款纯前端霓虹街机风打砖块游戏。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070d18'/%3E%3Crect x='10' y='15' width='44' height='9' rx='3' fill='%235ce6ff'/%3E%3Crect x='10' y='29' width='28' height='9' rx='3' fill='%23a984ff'/%3E%3Ccircle cx='38' cy='48' r='6' fill='%23f5fbff'/%3E%3Crect x='19' y='56' width='26' height='4' rx='2' fill='%235ce6ff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-	<header id="header"><div class="inner"><nav id="main-nav"><ul class="main">
-	<li><a href="/">Blog</a></li>
-	<li><a href="/blog/archives">Archives</a></li>
-	<li><a href="/about">About</a></li>
-</ul>
-</nav>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand" aria-label="Brick Breaker Demo">
+        <span class="brand-mark" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+        <span class="brand-type">
+          <strong>BRICK BREAKER</strong>
+          <small>ARCADE DEMO <b>/</b> 01</small>
+        </span>
+      </div>
 
-</div></header>
-	
-		
-	
-	<div id="content" class="inner"><article class="post">
-    
-    <h2 class="title">Placeholder</h2>
-    
-    <div class="entry-content"><p>This is a temperary placeholder for something new coming.</p>
+      <div class="topbar-actions">
+        <span class="online-pill" id="statusPill">
+          <i class="status-dot" aria-hidden="true"></i>
+          <span id="statusText">待机中</span>
+        </span>
+        <button class="icon-button" id="soundButton" type="button" aria-label="关闭声音" aria-pressed="true" title="声音开关（音乐与音效）">
+          <svg class="sound-on-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9.3h3.2L12 5.5v13l-4.8-3.8H4z" />
+            <path class="sound-wave" d="M15.4 8.6a4.8 4.8 0 0 1 0 6.8" />
+            <path class="sound-wave" d="M18 6a8.6 8.6 0 0 1 0 12" />
+          </svg>
+          <svg class="sound-off-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9.3h3.2L12 5.5v13l-4.8-3.8H4z" />
+            <path d="m16 9 5 6m0-6-5 6" />
+          </svg>
+        </button>
+      </div>
+    </header>
 
-</div>
-</article>
+    <main class="stage" id="stage" data-mode="menu">
+      <canvas id="gameCanvas" width="1280" height="760" aria-label="Brick Breaker 游戏区域">
+        你的浏览器需要支持 Canvas 才能游玩。
+      </canvas>
 
-</div>
-<footer id="footer" class="inner">Copyright &copy; 2018
+      <section class="hud" id="hud" aria-label="游戏状态">
+        <div class="hud-cluster">
+          <div class="hud-stat">
+            <span class="hud-label">SCORE</span>
+            <strong id="scoreValue" title="游戏内基础分；结算时会乘以球速与奖励砖难度系数">000000</strong>
+          </div>
+          <span class="hud-divider" aria-hidden="true"></span>
+          <div class="hud-stat hud-stat-small">
+            <span class="hud-label">BALLS</span>
+            <strong id="ballValue">1</strong>
+          </div>
+          <span class="hud-divider" aria-hidden="true"></span>
+          <div class="hud-stat hud-stat-small">
+            <span class="hud-label" title="获得 D 道具后永久提升弹珠威力，重复拾取可继续叠加">POWER</span>
+            <strong id="powerValue" title="当前弹珠威力">1</strong>
+          </div>
+        </div>
 
-    Lumi Wu
-, Powered by <a href="http://www.octopress.org/">Octopress</a>. <br/> Meiso Theme (based on <a href="https://github.com/tommy351/Octopress-Theme-Slash">Slash</a>) by Lumin Ng
-</footer>
-	<script src="/javascripts/slash.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
-</script> <!-- Delete or comment this line to disable Fancybox -->
+        <div class="speed-chip" id="speedChip" title="本局球速">
+          <span>SPEED</span>
+          <strong id="speedChipValue">03</strong>
+        </div>
 
+        <div class="hud-cluster hud-cluster-right">
+          <div class="hud-stat hud-stat-small hud-stat-end">
+            <span class="hud-label">HP</span>
+            <strong id="hpValue">0</strong>
+          </div>
+          <span class="hud-divider" aria-hidden="true"></span>
+          <div class="hud-stat hud-stat-small hud-stat-end">
+            <span class="hud-label">BRICKS</span>
+            <strong id="brickValue">0</strong>
+          </div>
+          <span class="hud-divider" aria-hidden="true"></span>
+          <div class="hud-stat hud-stat-end">
+            <span class="hud-label">TIME</span>
+            <strong id="timeValue">00:00.0</strong>
+          </div>
+        </div>
+      </section>
 
-<script type="text/javascript">
-      var disqus_shortname = 'meiso';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://luminsense.github.io/about/index.html';
-        var disqus_url = 'http://luminsense.github.io/about/index.html';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+      <div class="buff-rail" id="buffRail"></div>
 
+      <div class="toast" id="toast" role="status" aria-live="polite">
+        <span class="toast-icon" id="toastIcon"></span>
+        <span class="toast-copy">
+          <strong id="toastTitle"></strong>
+          <small id="toastSubtitle"></small>
+        </span>
+      </div>
 
+      <div class="launch-hint" id="launchHint" aria-hidden="true">
+        <span class="mouse-glyph"><i></i></span>
+        <span class="launch-copy">
+          <strong>点击鼠标左键 / 空格键 · 发射弹珠</strong>
+          <small>移动鼠标或使用 A / D 键调整反弹板</small>
+        </span>
+      </div>
 
+      <section class="menu" id="menu">
+        <div class="menu-glow" aria-hidden="true"></div>
+        <div class="menu-content">
+          <div class="menu-main">
+            <div class="eyebrow"><i></i> ARCADE LAB <span>/</span> SESSION 001</div>
+            <h1 class="game-title" aria-label="Brick Breaker">
+              <span class="title-fill">BRICK</span>
+              <span class="title-stroke">BREAKER</span>
+            </h1>
+            <p class="menu-lead">击碎每一块砖。<em>别让弹珠落下。</em></p>
+            <div class="menu-hints">
+              <span><b>01</b> 鼠标移动 · 控制反弹板</span>
+              <span><b>02</b> 左键 / 空格 · 发射弹珠</span>
+              <span><b>03</b> A / D 键 · 键盘移动反弹板</span>
+              <span><b>04</b> Esc · 暂停 / 释放鼠标</span>
+            </div>
 
+            <div class="power-legend" aria-label="道具图鉴">
+              <div class="legend-head">
+                <span>POWER-UPS</span>
+                <i aria-hidden="true"></i>
+                <span>击碎 ★ 奖励砖随机掉落</span>
+              </div>
+              <div class="legend-items">
+                <span class="legend-item" style="--legend-color:#b994ff"><i aria-hidden="true"></i>分裂</span>
+                <span class="legend-item" style="--legend-color:#5cf2bb"><i aria-hidden="true"></i>加长</span>
+                <span class="legend-item" style="--legend-color:#64d8ff"><i aria-hidden="true"></i>穿透</span>
+                <span class="legend-item" style="--legend-color:#ffb75f"><i aria-hidden="true"></i>强化</span>
+                <span class="legend-item" style="--legend-color:#ff86d2"><i aria-hidden="true"></i>无敌</span>
+              </div>
+            </div>
 
+          </div>
+
+          <div class="menu-panel">
+            <div class="panel-topline">
+              <span>GAME SETUP</span>
+              <i></i>
+              <span id="panelCode">LOADOUT READY</span>
+            </div>
+
+            <div class="panel-heading">
+              <div>
+                <span class="panel-kicker">本局参数</span>
+                <h2>配置你的挑战</h2>
+              </div>
+              <span class="panel-status"><i></i> READY</span>
+            </div>
+
+            <div class="settings-list">
+              <div class="setting-block">
+                <div class="setting-head">
+                  <span>球速 <small>BALL SPEED</small></span>
+                  <em id="speedReadout">适中</em>
+                </div>
+                <div class="choice-rail" id="speedOptions" role="radiogroup" aria-label="弹珠速度"></div>
+              </div>
+
+              <div class="setting-block">
+                <div class="setting-head">
+                  <span>砖块总耐久 <small>TOTAL HP</small></span>
+                  <em id="durabilityReadout">标准</em>
+                </div>
+                <div class="choice-rail" id="durabilityOptions" role="radiogroup" aria-label="砖块总耐久"></div>
+              </div>
+
+              <div class="setting-block">
+                <div class="setting-head">
+                  <span>奖励砖块占比 <small>REWARD RATIO · 左少右多</small></span>
+                  <em id="rewardReadout">适中</em>
+                </div>
+                <div class="choice-rail" id="rewardOptions" role="radiogroup" aria-label="奖励砖块占比"></div>
+              </div>
+
+              <div class="setting-block setting-support">
+                <div class="setting-head">
+                  <span>键盘移速 <small>KEYBOARD SPEED</small></span>
+                  <em id="keyboardSpeedReadout">标准</em>
+                </div>
+                <div class="choice-rail" id="keyboardSpeedOptions" role="radiogroup" aria-label="键盘移速"></div>
+              </div>
+            </div>
+
+            <div class="player-row">
+              <label for="playerName">
+                <span>玩家名字</span>
+                <small>PLAYER NAME</small>
+              </label>
+              <div class="name-control">
+                <div class="name-input-wrap">
+                  <span aria-hidden="true">›</span>
+                  <input id="playerName" name="playerName" type="text" value="Player" maxlength="16" autocomplete="off" spellcheck="false" aria-label="玩家名字" />
+                  <em>MAX 16</em>
+                </div>
+                <button class="name-dice" id="nameDiceButton" type="button" aria-label="随机换一个玩家名字" title="随机换一个名字">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3.5" y="3.5" width="17" height="17" rx="4.2"></rect>
+                    <circle cx="8.4" cy="8.4" r="1.25"></circle>
+                    <circle cx="15.6" cy="8.4" r="1.25"></circle>
+                    <circle cx="12" cy="12" r="1.25"></circle>
+                    <circle cx="8.4" cy="15.6" r="1.25"></circle>
+                    <circle cx="15.6" cy="15.6" r="1.25"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button class="start-button" id="startButton" type="button">
+              <span class="start-shine" aria-hidden="true"></span>
+              <span class="start-label">
+                <small>ENTER THE GRID</small>
+                <strong>游戏开始</strong>
+              </span>
+              <span class="start-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg>
+              </span>
+            </button>
+
+            <p class="panel-note">
+              <span class="note-star" aria-hidden="true">✦</span>
+              每消耗 1 点耐久得 100 分 · 多项结算加成按原始分叠加
+            </p>
+            <p class="panel-credit">Demo Vibe Coding by Lumi (2026)</p>
+          </div>
+        </div>
+
+        <section class="leaderboard leaderboard-wide" aria-labelledby="leaderboardTitle">
+          <div class="leaderboard-head">
+            <div class="leaderboard-title">
+              <span>LOCAL LEADERBOARD / LOCAL STORAGE</span>
+              <h3 id="leaderboardTitle">本机排行榜</h3>
+              <p>每局结算积分从高到低排列，默认仅展示成功记录。</p>
+            </div>
+            <div class="leaderboard-tools">
+              <span class="leaderboard-count"><strong id="leaderboardCount">0</strong> 局</span>
+              <div class="leaderboard-filters" id="leaderboardFilters" role="group" aria-label="排行榜筛选">
+                <button class="is-active" type="button" data-filter="win" aria-pressed="true">成功记录</button>
+                <button type="button" data-filter="all" aria-pressed="false">全部记录</button>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-table">
+            <div class="leaderboard-col-head" aria-hidden="true">
+              <span class="leaderboard-col-rank">#</span>
+              <span class="leaderboard-col-player">玩家</span>
+              <span class="leaderboard-col-config">难度配置</span>
+              <span class="leaderboard-col-time">用时</span>
+              <span class="leaderboard-col-score">结算积分</span>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList"></div>
+            <p class="leaderboard-empty" id="leaderboardEmpty">还没有成功战绩，完成一局后会保存在本机。</p>
+          </div>
+        </section>
+
+        <footer class="menu-footer">
+          <span>PURE FRONTEND / NO BACKEND</span>
+          <span class="menu-footer-line" aria-hidden="true"></span>
+          <button class="leaderboard-delete" id="deleteLeaderboardButton" type="button" disabled title="清空当前浏览器保存的全部排行榜记录">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+            </svg>
+            删除本地排行榜
+          </button>
+        </footer>
+
+        <div class="menu-ghost" aria-hidden="true">01</div>
+      </section>
+
+      <div class="modal-layer" id="victoryModal" role="dialog" aria-modal="true" aria-labelledby="victoryTitle">
+        <div class="result-card result-win">
+          <div class="result-orbit" aria-hidden="true"></div>
+          <div class="result-badge" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <path d="M17 14h30v13a15 15 0 0 1-30 0z" />
+              <path d="M17 20H9v5a10 10 0 0 0 10 10M47 20h8v5a10 10 0 0 1-10 10M32 42v8M23 56h18" />
+            </svg>
+          </div>
+          <div class="result-eyebrow"><i></i> SECTOR CLEARED</div>
+          <div class="result-player"><span>PLAYER</span><strong id="victoryPlayerName">Player</strong></div>
+          <h2 id="victoryTitle">清除完成</h2>
+          <p class="result-copy">所有砖块已被击碎，干得漂亮。</p>
+          <div class="result-stats">
+            <div>
+              <span>CLEAR TIME</span>
+              <strong id="clearTime">00:00.0</strong>
+            </div>
+            <i aria-hidden="true"></i>
+            <div>
+              <span>FINAL SCORE</span>
+              <strong id="clearScore">000000</strong>
+            </div>
+          </div>
+          <div class="result-breakdown">
+            <span>基础分 <b id="victoryBaseScore">0</b></span>
+            <span>球速加成 <b id="victorySpeedMultiplier">+50%</b></span>
+            <span>奖励加成 <b id="victoryRewardMultiplier">+50%</b></span>
+            <span>时间加成 <b id="victoryTimeMultiplier">+100%</b></span>
+            <span class="is-total">总加成 <b id="victoryTotalCoefficient">+200%</b></span>
+          </div>
+          <p class="settlement-note">所有加成均以原始基础分为基数叠加</p>
+          <div class="result-actions">
+            <button class="button-primary" id="playAgainButton" type="button">再来一局 <span>→</span></button>
+            <button class="button-ghost" id="victoryMenuButton" type="button">返回开始页</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-layer" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="result-card result-lose">
+          <div class="result-badge" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="15" />
+              <path d="m12 12 8 8M52 12l-8 8M32 49v9M18 54h28" />
+            </svg>
+          </div>
+          <div class="result-eyebrow"><i></i> SIGNAL LOST</div>
+          <div class="result-player"><span>PLAYER</span><strong id="failPlayerName">Player</strong></div>
+          <h2 id="gameOverTitle">挑战失败</h2>
+          <p class="result-copy">场上所有弹珠都已坠落。</p>
+          <div class="result-stats">
+            <div>
+              <span>TIME SURVIVED</span>
+              <strong id="failTime">00:00.0</strong>
+            </div>
+            <i aria-hidden="true"></i>
+            <div>
+              <span>FINAL SCORE</span>
+              <strong id="failScore">000000</strong>
+            </div>
+          </div>
+          <div class="result-breakdown">
+            <span>基础分 <b id="failBaseScore">0</b></span>
+            <span>球速加成 <b id="failSpeedMultiplier">+50%</b></span>
+            <span>奖励加成 <b id="failRewardMultiplier">+50%</b></span>
+            <span class="is-muted">时间加成 <b>未通关不计</b></span>
+            <span class="is-total">总加成 <b id="failTotalCoefficient">+50%</b></span>
+          </div>
+          <p class="settlement-note">所有加成均以原始基础分为基数叠加</p>
+          <p class="result-meta">剩余 <b id="failBricks">00</b> 块砖 · <b id="failHp">0</b> 点耐久</p>
+          <div class="result-actions">
+            <button class="button-primary button-lose" id="okButton" type="button">OK <span>返回开始页 →</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-layer confirm-layer" id="deleteLeaderboardModal" role="dialog" aria-modal="true" aria-labelledby="deleteLeaderboardTitle">
+        <div class="confirm-card">
+          <div class="confirm-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+            </svg>
+          </div>
+          <div class="confirm-eyebrow"><i></i> LOCAL DATA</div>
+          <h2 id="deleteLeaderboardTitle">删除本地排行榜？</h2>
+          <p>这会清空当前浏览器保存的全部战绩与积分，操作无法撤销。</p>
+          <div class="confirm-actions">
+            <button class="button-ghost" id="cancelDeleteButton" type="button">取消</button>
+            <button class="button-primary button-lose" id="confirmDeleteButton" type="button">确认删除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pause-layer" id="pauseModal" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+        <div class="pause-card">
+          <div class="pause-emblem" aria-hidden="true"><i></i><i></i></div>
+          <div class="pause-eyebrow"><i></i> SYSTEM PAUSED</div>
+          <h2 id="pauseTitle">游戏暂停</h2>
+          <p class="pause-reason" id="pauseReason">按 Esc 或点击「继续游戏」返回战场。</p>
+
+          <div class="pause-key-guide">
+            <span><kbd>A</kbd> 向左</span>
+            <span><kbd>D</kbd> 向右</span>
+            <span class="pause-key-esc"><kbd>ESC</kbd> 继续</span>
+          </div>
+
+          <div class="pause-setting">
+            <div class="setting-head">
+              <span>键盘移速 <small>KEYBOARD SPEED</small></span>
+              <em id="pauseKeyboardReadout">03 · 标准 800 px/s</em>
+            </div>
+            <div class="choice-options pause-choice-options" id="pauseKeyboardOptions" role="radiogroup" aria-label="键盘控制反弹板移动速度"></div>
+            <p class="pause-note">仅影响 A / D 键操控，不影响游戏难度与分数结算。</p>
+          </div>
+
+          <div class="pause-actions">
+            <button class="pause-resume" id="resumeButton" type="button">继续游戏 <span>ESC</span></button>
+            <button class="pause-abandon" id="abandonButton" type="button">放弃本局</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="orientation-gate">
+        <span class="orientation-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32">
+            <rect x="10" y="5" width="12" height="22" rx="3" />
+            <path d="M5 13a12 12 0 0 1 3.4-6M27 19a12 12 0 0 1-3.4 6" />
+            <path d="m4 9 1-4 4 1M28 23l-1 4-4-1" />
+          </svg>
+        </span>
+        <span class="gate-eyebrow">PORTRAIT MODE</span>
+        <strong>请横屏进入战场</strong>
+        <p>本游戏支持鼠标与 A / D 键操控，建议在桌面端体验完整效果。</p>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <span><i class="footer-dot" aria-hidden="true"></i> 鼠标 / A D 控制反弹板 · ESC 暂停</span>
+      <span class="footer-mid">NO DOWNLOADS · NO SIGN-UP · JUST BREAK</span>
+      <span>v0.8.0 / CANVAS ENGINE</span>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
