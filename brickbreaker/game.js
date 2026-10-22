@@ -169,6 +169,51 @@
     },
   };
 
+  // Phone portrait uses larger, edge-to-edge bricks: at most eight columns,
+  // dynamic row count and a slightly longer paddle. Desktop portrait and
+  // landscape keep their existing configurations.
+  const MOBILE_PORTRAIT_ROW_HP_RANGES = [
+    [4, 10],
+    [3, 10],
+    [3, 10],
+    [2, 9],
+    [2, 9],
+    [2, 8],
+    [2, 8],
+    [1, 7],
+    [1, 7],
+    [1, 6],
+    [1, 6],
+    [1, 5],
+    [1, 5],
+    [1, 4],
+  ];
+
+  const MOBILE_PORTRAIT_BOARD_CONFIG = {
+    ...BOARD_CONFIGS.portrait,
+    field: {
+      ...BOARD_CONFIGS.portrait.field,
+      left: 8,
+      right: 712,
+    },
+    paddle: {
+      ...BOARD_CONFIGS.portrait.paddle,
+      baseRatio: 124 / 720,
+    },
+    brick: {
+      ...BOARD_CONFIGS.portrait.brick,
+      cols: 8,
+      rows: 14,
+      padX: 8,
+      gapX: 3,
+      gapY: 7,
+      topOffset: 38,
+      dynamicRows: true,
+      echoRows: 4,
+      ranges: MOBILE_PORTRAIT_ROW_HP_RANGES,
+    },
+  };
+
   const DESKTOP_PORTRAIT_MAX_WIDTH = 820;
   const LOWER_REWARD_SHARE = 0.3;
   const BUFF_DURATIONS = { C: 10, E: 5 };
@@ -1009,7 +1054,9 @@
   }
 
   function configureBoard(boardName) {
-    const config = BOARD_CONFIGS[boardName] || BOARD_CONFIGS.landscape;
+    const config = boardName === "portrait" && game.isMobile
+      ? MOBILE_PORTRAIT_BOARD_CONFIG
+      : (BOARD_CONFIGS[boardName] || BOARD_CONFIGS.landscape);
     const field = config.field;
     W = config.W;
     H = config.H;
@@ -1151,13 +1198,60 @@
       heightRatio,
       topOffset,
       echoFrom,
+      echoRows,
+      dynamicRows,
       ranges,
     } = BRICK_LAYOUT;
     const brickWidth = (FIELD.width - padX * 2 - gapX * (cols - 1)) / cols;
     const brickHeight = heightRatio ? brickWidth * heightRatio : fixedBrickHeight;
     const startX = FIELD.left + padX;
     const startY = FIELD.top + topOffset;
+    const upperTwoThirds = H * (2 / 3);
+    const effectiveRows = dynamicRows ? rows : rows;
+    const effectiveEchoFrom = dynamicRows
+      ? Math.max(1, effectiveRows - (echoRows ?? 4))
+      : echoFrom;
     const bricks = [];
+
+    // Phone portrait packs whole rows from the top 2/3 boundary inward. Row
+    // counts alternate between the maximum eight and seven, so each row's
+    // brick width (and 2:1 height) is derived from that row's actual count.
+    if (dynamicRows) {
+      const brickAreaWidth = FIELD.width - padX * 2;
+      let cursorY = startY;
+      for (let row = 0; row < 40; row += 1) {
+        const rowCount = row % 2 === 0 ? cols : Math.max(1, cols - 1);
+        const rowBrickWidth = (brickAreaWidth - gapX * (rowCount - 1)) / rowCount;
+        const rowBrickHeight = heightRatio ? rowBrickWidth * heightRatio : fixedBrickHeight;
+        if (cursorY + rowBrickHeight > upperTwoThirds + 0.01) break;
+
+        const [minHp, maxHp] = ranges[Math.min(row, ranges.length - 1)];
+        for (let col = 0; col < rowCount; col += 1) {
+          const durability = randomInt(minHp, maxHp);
+          const x = startX + col * (rowBrickWidth + gapX);
+
+          bricks.push({
+            id: game.brickId++,
+            x,
+            y: cursorY,
+            w: rowBrickWidth,
+            h: rowBrickHeight,
+            row,
+            hp: durability,
+            maxHp: durability,
+            rangeMin: minHp,
+            rangeMax: maxHp,
+            reward: false,
+            flash: 0,
+            seed: Math.random() * 1000,
+            spawnAt: performance.now() / 1000 + (row * 0.018 + col * 0.008),
+            ambient,
+          });
+        }
+        cursorY += rowBrickHeight + gapY;
+      }
+      return bricks;
+    }
 
     // A deliberately stair-stepped channel runs through the wall. Its bias is
     // randomized per round, so the layout is predictable in style but varies.
@@ -1167,7 +1261,7 @@
       (channelOffset + row * channelDirection + cols * 2) % cols
     );
 
-    for (let row = 0; row < rows; row += 1) {
+    for (let row = 0; row < effectiveRows; row += 1) {
       const [minHp, maxHp] = ranges[Math.min(row, ranges.length - 1)];
       const channelCol = channelAt(row);
       const echoCol = (channelCol + channelDirection * 2 + cols * 2) % cols;
@@ -1175,7 +1269,7 @@
       for (let col = 0; col < cols; col += 1) {
         // The offset echo keeps a roughly constant deliberate-open share while
         // the stair-step main channel runs through every row.
-        const isPatternGap = col === channelCol || (row >= echoFrom && col === echoCol);
+        const isPatternGap = col === channelCol || (row >= effectiveEchoFrom && col === echoCol);
         if (isPatternGap) continue;
 
         const durability = randomInt(minHp, maxHp);

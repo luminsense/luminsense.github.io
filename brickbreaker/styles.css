@@ -6230,3 +6230,20 @@ body.is-mobile .stage[data-board="portrait"] .launch-hint {
     display: none !important;
   }
 }
+
+/* ============================================================
+   v15 — phone portrait edge-to-edge game stage
+   ============================================================ */
+
+body.is-mobile .page {
+  padding: 4px 2px 0;
+}
+
+body.is-mobile .topbar {
+  width: calc(100vw - 4px);
+}
+
+body.is-mobile .stage[data-board="portrait"] {
+  width: min(calc(100vw - 4px), calc((100dvh - 50px) * 0.5625));
+  border-radius: 14px;
+}
