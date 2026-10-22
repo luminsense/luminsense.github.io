@@ -56,18 +56,16 @@
   // Total brick durability presets. 3 is intended as the balanced setting.
   // Portrait has more bricks, so its targets are scaled by the exact brick
   // count ratio (137 / 71) and rounded to whole HP.
-  const LANDSCAPE_BRICK_TOTAL = 71;
-  const PORTRAIT_BRICK_TOTAL = 137;
-  const PORTRAIT_DURABILITY_RATIO = PORTRAIT_BRICK_TOTAL / LANDSCAPE_BRICK_TOTAL;
+  const MOBILE_PORTRAIT_DURABILITY = [260, 330, 400, 470, 540];
   const DURABILITY_LEVELS = [
     { name: "轻量", hp: 170, display: "170", unit: "HP" },
     { name: "轻装", hp: 215, display: "215", unit: "HP" },
     { name: "标准", hp: 260, display: "260", unit: "HP" },
     { name: "厚重", hp: 305, display: "305", unit: "HP" },
     { name: "堡垒", hp: 350, display: "350", unit: "HP" },
-  ].map((level) => ({
+  ].map((level, index) => ({
     ...level,
-    portraitHp: Math.round(level.hp * PORTRAIT_DURABILITY_RATIO),
+    portraitHp: MOBILE_PORTRAIT_DURABILITY[index],
   }));
 
   // Reward brick density presets. Level 1 grants the most rewards (50% of bricks),
@@ -191,9 +189,9 @@
     [1, 4],
     [1, 3],
     [1, 3],
-    [1, 3],
-    [1, 3],
-    [1, 3],
+    [1, 2],
+    [1, 2],
+    [1, 2],
   ];
 
   const MOBILE_PORTRAIT_BOARD_CONFIG = {
@@ -221,7 +219,6 @@
     },
   };
 
-  const DESKTOP_PORTRAIT_MAX_WIDTH = 820;
   const LOWER_REWARD_SHARE = 0.3;
   const BUFF_DURATIONS = { C: 10, E: 5 };
   const LEADERBOARD_KEY = "brickBreakerDemo.leaderboard.v2";
@@ -1124,8 +1121,8 @@
   }
 
   function detectMenuBoard() {
-    if (game.isMobile) return "portrait";
-    return window.innerWidth < DESKTOP_PORTRAIT_MAX_WIDTH ? "portrait" : "landscape";
+    // Phone/tablet gets the dedicated portrait board. Desktop is landscape-only.
+    return game.isMobile ? "portrait" : "landscape";
   }
 
   function isPortraitViewport() {
