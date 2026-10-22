@@ -222,6 +222,7 @@
     },
   };
 
+  const brickSpriteCache = new Map();
   const LOWER_REWARD_SHARE = 0.3;
   const BUFF_DURATIONS = { C: 10, E: 5 };
   const LEADERBOARD_KEY = "brickBreakerDemo.leaderboard.v2";
@@ -303,7 +304,8 @@
   // ------------------------------------------------------------
 
   const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+  let ctx = canvas.getContext("2d");
+  let backgroundCache = null;
   const stage = document.getElementById("stage");
 
   const dom = {
@@ -982,6 +984,8 @@
     brickId: 0,
     powerupId: 0,
     lastFrame: performance.now(),
+    lastFrameCheck: performance.now() - 16,
+    renderBudget: 15,
     accumulator: 0,
   };
 
@@ -1088,7 +1092,9 @@
     POWERUP_FALL_SPEED = config.powerupFall;
     WORLD_SPEED_SCALE = config.speedScale;
     BRICK_LAYOUT = config.brick;
-    canvasDprCap = boardName === "portrait" ? 1.25 : 2;
+    brickSpriteCache.clear();
+    backgroundCache = null;
+    canvasDprCap = boardName === "portrait" ? 0.85 : 2;
 
     stage.dataset.board = boardName;
     canvas.setAttribute("aria-label", boardName === "portrait"
@@ -1766,14 +1772,19 @@
   }
 
   function updateHUD() {
-    dom.score.textContent = pad(game.score, 6);
-    dom.balls.textContent = String(game.balls.length);
-    dom.power.textContent = String(game.effect.damageUnlocked ? game.effect.ballPower : 1);
-    dom.power.classList.toggle("is-boosted", game.effect.damageUnlocked);
-    dom.bricks.textContent = String(game.bricks.length);
-    dom.hp.textContent = String(totalRemainingHp());
-    dom.time.textContent = formatTime(game.playTime);
-    dom.speedChipValue.textContent = pad(game.speedIndex);
+    const setText = (element, value) => {
+      if (element && element.textContent !== value) element.textContent = value;
+    };
+    setText(dom.score, pad(game.score, 6));
+    setText(dom.balls, String(game.balls.length));
+    setText(dom.power, String(game.effect.damageUnlocked ? game.effect.ballPower : 1));
+    if (dom.power.classList.contains("is-boosted") !== game.effect.damageUnlocked) {
+      dom.power.classList.toggle("is-boosted", game.effect.damageUnlocked);
+    }
+    setText(dom.bricks, String(game.bricks.length));
+    setText(dom.hp, String(totalRemainingHp()));
+    setText(dom.time, formatTime(game.playTime));
+    setText(dom.speedChipValue, pad(game.speedIndex));
   }
 
   function getTimedBuffs() {
@@ -1842,8 +1853,10 @@
       if (!nodes) return;
       const remaining = Math.max(0, buff.remaining);
       const percent = clamp(remaining / buff.total, 0, 1) * 100;
-      if (nodes.time) nodes.time.textContent = `${remaining.toFixed(1)}s`;
-      if (nodes.fill) nodes.fill.style.width = `${percent.toFixed(1)}%`;
+      const timeText = `${remaining.toFixed(1)}s`;
+      const widthText = `${percent.toFixed(1)}%`;
+      if (nodes.time && nodes.time.textContent !== timeText) nodes.time.textContent = timeText;
+      if (nodes.fill && nodes.fill.style.width !== widthText) nodes.fill.style.width = widthText;
     });
   }
 
@@ -2221,6 +2234,7 @@
     game.targetDurability = getDurabilityHp(game.durabilityIndex, game.roundBoard);
     game.rewardRatio = REWARD_LEVELS[game.rewardIndex - 1].ratio;
     game.bricks = createBrickGrid(false);
+    warmMobileBrickSprites(game.bricks);
     inputState.mode = "mouse";
     inputState.left = false;
     inputState.right = false;
@@ -3263,7 +3277,218 @@
     }
   }
 
+  function spriteRoundRect(sctx, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    sctx.beginPath();
+    sctx.moveTo(x + radius, y);
+    sctx.arcTo(x + w, y, x + w, y + h, radius);
+    sctx.arcTo(x + w, y + h, x, y + h, radius);
+    sctx.arcTo(x, y + h, x, y, radius);
+    sctx.arcTo(x, y, x + w, y, radius);
+    sctx.closePath();
+  }
+
+  function spriteStar(sctx, cx, cy, outer, inner, points, color) {
+    sctx.save();
+    sctx.beginPath();
+    for (let index = 0; index < points * 2; index += 1) {
+      const angle = (index * Math.PI) / points - Math.PI / 2;
+      const radius = index % 2 === 0 ? outer : inner;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius;
+      if (index === 0) sctx.moveTo(x, y);
+      else sctx.lineTo(x, y);
+    }
+    sctx.closePath();
+    sctx.fillStyle = color;
+    sctx.fill();
+    sctx.restore();
+  }
+
+  function buildMobileBrickSprite(brick) {
+    const w = brick.w;
+    const h = brick.h;
+    const scale = 1.5;
+    const sprite = document.createElement("canvas");
+    sprite.width = Math.max(1, Math.ceil(w * scale));
+    sprite.height = Math.max(1, Math.ceil(h * scale));
+    const sctx = sprite.getContext("2d");
+    sctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+    const palette = brick.reward ? REWARD_PALETTE : (BRICK_PALETTE[brick.hp] || BRICK_PALETTE[1]);
+    const gradient = sctx.createLinearGradient(0, 0, 0, h);
+    gradient.addColorStop(0, palette.top);
+    gradient.addColorStop(0.45, palette.base);
+    gradient.addColorStop(1, palette.deep);
+
+    spriteRoundRect(sctx, 0, 0, w, h, 6);
+    sctx.fillStyle = gradient;
+    sctx.fill();
+
+    sctx.save();
+    spriteRoundRect(sctx, 0, 0, w, h, 6);
+    sctx.clip();
+    sctx.fillStyle = "rgba(1, 7, 14, 0.19)";
+    sctx.fillRect(0, h - 7, w, 7);
+    sctx.fillStyle = "rgba(255, 255, 255, 0.17)";
+    sctx.fillRect(1, 1, w - 2, 1.5);
+
+    if (brick.reward) {
+      sctx.fillStyle = "rgba(45, 24, 3, 0.24)";
+      sctx.beginPath();
+      sctx.arc(17, h / 2, 10.5, 0, TAU);
+      sctx.fill();
+
+      sctx.save();
+      sctx.shadowColor = "rgba(255, 241, 185, 0.95)";
+      sctx.shadowBlur = 4;
+      spriteStar(sctx, 17, h / 2, 6.5, 2.7, 5, "rgba(255, 248, 208, 1)");
+      sctx.restore();
+    }
+    sctx.restore();
+
+    spriteRoundRect(sctx, 0.75, 0.75, w - 1.5, h - 1.5, 5.5);
+    sctx.strokeStyle = brick.reward
+      ? "rgba(255, 230, 157, 0.74)"
+      : "rgba(255, 255, 255, 0.13)";
+    sctx.lineWidth = brick.reward ? 1.35 : 1;
+    sctx.stroke();
+
+    if (brick.hp < brick.maxHp) {
+      const damageRatio = 1 - brick.hp / brick.maxHp;
+      sctx.save();
+      sctx.strokeStyle = `rgba(4, 11, 19, ${0.12 + damageRatio * 0.34})`;
+      sctx.lineWidth = 1;
+      sctx.beginPath();
+      const crackX = w * (0.33 + ((brick.seed % 10) / 100));
+      sctx.moveTo(crackX, 3);
+      sctx.lineTo(crackX + 5, 9);
+      sctx.lineTo(crackX - 1, 14);
+      sctx.lineTo(crackX + 4, h - 4);
+      if (damageRatio > 0.55) {
+        sctx.moveTo(w * 0.72, h - 3);
+        sctx.lineTo(w * 0.67, 13);
+        sctx.lineTo(w * 0.71, 8);
+      }
+      sctx.stroke();
+      sctx.restore();
+    }
+
+    sctx.font = "600 14px 'SFMono-Regular', Menlo, monospace";
+    sctx.textAlign = "center";
+    sctx.textBaseline = "middle";
+    sctx.fillStyle = brick.reward ? "rgba(255, 246, 216, 0.95)" : "rgba(247, 254, 255, 0.9)";
+    if (brick.reward) {
+      sctx.shadowColor = "rgba(84, 44, 3, 0.8)";
+      sctx.shadowBlur = 3;
+    }
+    sctx.fillText(String(Math.max(0, brick.hp)), w / 2, h / 2 + 0.5);
+    sctx.shadowBlur = 0;
+
+    if (!brick.reward) {
+      sctx.font = "500 6px 'SFMono-Regular', Menlo, monospace";
+      sctx.fillStyle = "rgba(5, 19, 29, 0.4)";
+      sctx.textAlign = "right";
+      sctx.fillText("HP", w - 7, h / 2 + 1);
+    }
+
+    return sprite;
+  }
+
+  function getMobileBrickSprite(brick) {
+    const key = `${brick.reward ? "R" : "N"}|${brick.hp}|${brick.maxHp}|${brick.seed % 10}|${brick.w.toFixed(2)}|${brick.h.toFixed(2)}`;
+    let sprite = brickSpriteCache.get(key);
+    if (!sprite) {
+      sprite = buildMobileBrickSprite(brick);
+      brickSpriteCache.set(key, sprite);
+    }
+    return sprite;
+  }
+
+  function warmMobileBrickSprites(bricks) {
+    if (!game.isMobile || game.roundBoard !== "portrait") return;
+    for (const brick of bricks) getMobileBrickSprite(brick);
+  }
+
+  function drawMobileBrick(brick, time) {
+    const { x, y, w, h } = brick;
+    const reveal = clamp((time - brick.spawnAt) * 7, 0, 1);
+    if (reveal <= 0) return;
+
+    ctx.save();
+    ctx.globalAlpha *= reveal;
+
+    if (brick.reward) {
+      const pulse = 0.5 + Math.sin(time * 2.8 + brick.seed) * 0.5;
+      ctx.save();
+      ctx.shadowColor = `rgba(255, 196, 76, ${0.42 + pulse * 0.18})`;
+      ctx.shadowBlur = 9 + pulse * 4;
+      ctx.strokeStyle = `rgba(255, 229, 147, ${0.38 + pulse * 0.24})`;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 4]);
+      ctx.lineDashOffset = -time * 18;
+      roundRectPath(x - 3.5, y - 3.5, w + 7, h + 7, 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.drawImage(getMobileBrickSprite(brick), x, y, w, h);
+
+    if (brick.reward) {
+      const shimmerPhase = (time + brick.seed * 0.013) % 0.9;
+      if (shimmerPhase < 0.6) {
+        const shimmerProgress = shimmerPhase / 0.6;
+        const shimmerX = x - 24 + shimmerProgress * (w + 48);
+        ctx.save();
+        roundRectPath(x, y, w, h, 6);
+        ctx.clip();
+        const shimmer = ctx.createLinearGradient(shimmerX - 24, y, shimmerX + 24, y + h);
+        shimmer.addColorStop(0, "rgba(255, 255, 255, 0)");
+        shimmer.addColorStop(0.42, "rgba(255, 252, 231, 0.08)");
+        shimmer.addColorStop(0.5, "rgba(255, 253, 236, 0.48)");
+        shimmer.addColorStop(0.58, "rgba(255, 252, 231, 0.08)");
+        shimmer.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = shimmer;
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (let index = 0; index < 2; index += 1) {
+        const phase = time * 2.1 + brick.seed * 0.07 + index * 2.3;
+        const twinkle = 0.25 + Math.sin(phase) * 0.2;
+        const px = x + 12 + ((brick.seed * (index + 3)) % Math.max(1, w - 24));
+        const py = index % 2 === 0 ? y - 2 : y + h + 2;
+        ctx.fillStyle = `rgba(255, 232, 160, ${twinkle})`;
+        ctx.beginPath();
+        ctx.moveTo(px, py - 3);
+        ctx.lineTo(px + 1.4, py);
+        ctx.lineTo(px, py + 3);
+        ctx.lineTo(px - 1.4, py);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    if (brick.flash > 0) {
+      ctx.save();
+      roundRectPath(x, y, w, h, 6);
+      ctx.fillStyle = `rgba(255, 255, 255, ${brick.flash * 0.72})`;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
   function drawBrick(brick, time, ambient) {
+    if (!ambient && game.isMobile && game.roundBoard === "portrait") {
+      drawMobileBrick(brick, time);
+      return;
+    }
+
     const portrait = game.roundBoard === "portrait";
     const palette = brick.reward ? REWARD_PALETTE : (BRICK_PALETTE[brick.hp] || BRICK_PALETTE[1]);
     const { x, y, w, h } = brick;
@@ -3822,9 +4047,31 @@
     ctx.fillRect(0, 0, W, H);
   }
 
+  function ensureMobileBackgroundCache() {
+    if (!(game.isMobile && getActiveBoard() === "portrait")) return null;
+    if (backgroundCache && backgroundCache.width === W && backgroundCache.height === H) {
+      return backgroundCache;
+    }
+    const cache = document.createElement("canvas");
+    cache.width = W;
+    cache.height = H;
+    const cacheCtx = cache.getContext("2d");
+    const mainCtx = ctx;
+    ctx = cacheCtx;
+    drawBackground(0);
+    ctx = mainCtx;
+    backgroundCache = cache;
+    return cache;
+  }
+
   function render(time) {
     ctx.clearRect(0, 0, W, H);
-    drawBackground(time);
+    const cachedBackground = ensureMobileBackgroundCache();
+    if (cachedBackground) {
+      ctx.drawImage(cachedBackground, 0, 0, W, H);
+    } else {
+      drawBackground(time);
+    }
 
     if (game.mode === "menu") {
       drawAmbientScene(time);
@@ -3879,6 +4126,17 @@
   }
 
   function frame(now) {
+    if (game.isMobile) {
+      const checkElapsed = Math.max(0, now - game.lastFrameCheck);
+      game.lastFrameCheck = now;
+      game.renderBudget = Math.min(50, game.renderBudget + checkElapsed);
+      if (game.renderBudget < 15) {
+        requestAnimationFrame(frame);
+        return;
+      }
+      game.renderBudget -= 15;
+    }
+
     const rawDt = (now - game.lastFrame) / 1000;
     game.lastFrame = now;
     const dt = clamp(rawDt, 0, 0.05);

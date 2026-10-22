@@ -6286,3 +6286,11 @@ body.is-mobile .menu-version {
 .stage[data-board="portrait"] .menu-version {
   gap: 1.2cqw;
 }
+
+/* Mobile compositing: keep expensive live blur out of the gameplay loop. */
+body.is-mobile .launch-hint,
+body.is-mobile .modal-layer,
+body.is-mobile .pause-layer,
+body.is-mobile .orientation-gate {
+  backdrop-filter: none;
+}
