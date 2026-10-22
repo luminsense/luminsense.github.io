@@ -56,7 +56,7 @@
   // Total brick durability presets. 3 is intended as the balanced setting.
   // Portrait has more bricks, so its targets are scaled by the exact brick
   // count ratio (137 / 71) and rounded to whole HP.
-  const MOBILE_PORTRAIT_DURABILITY = [260, 330, 400, 470, 540];
+  const MOBILE_PORTRAIT_DURABILITY = [240, 300, 360, 420, 480];
   const DURABILITY_LEVELS = [
     { name: "轻量", hp: 170, display: "170", unit: "HP" },
     { name: "轻装", hp: 215, display: "215", unit: "HP" },
@@ -189,9 +189,9 @@
     [1, 4],
     [1, 3],
     [1, 3],
-    [1, 2],
-    [1, 2],
-    [1, 2],
+    [1, 3],
+    [1, 3],
+    [1, 3],
   ];
 
   const MOBILE_PORTRAIT_BOARD_CONFIG = {
@@ -214,7 +214,10 @@
       gapY: 6.985,
       topOffset: 38,
       echoFrom: 16,
+      echoRows: [14, 15, 16, 17, 18],
       heightRatio: 1 / 3,
+      lowTailRows: 3,
+      lowTailThreeShare: 0.1,
       ranges: MOBILE_PORTRAIT_ROW_HP_RANGES,
     },
   };
@@ -1225,7 +1228,10 @@
       for (let col = 0; col < cols; col += 1) {
         // The offset echo keeps a roughly constant deliberate-open share while
         // the stair-step main channel runs through every row.
-        const isPatternGap = col === channelCol || (row >= echoFrom && col === echoCol);
+        const echoActive = Array.isArray(BRICK_LAYOUT.echoRows)
+          ? BRICK_LAYOUT.echoRows.includes(row)
+          : row >= echoFrom;
+        const isPatternGap = col === channelCol || (echoActive && col === echoCol);
         if (isPatternGap) continue;
 
         const durability = randomInt(minHp, maxHp);
@@ -1252,6 +1258,30 @@
       }
     }
 
+    // The bottom three rows are a controlled low-durability tail: 90% of
+    // bricks are 1-2 and roughly 10% are 3. They stay outside the total-target
+    // adjustment so every tier keeps the same bottom distribution.
+    const lowTailRows = BRICK_LAYOUT.lowTailRows || 0;
+    if (lowTailRows > 0) {
+      const tail = bricks.filter((brick) => brick.row >= rows - lowTailRows);
+      tail.forEach((brick) => {
+        brick.hp = Math.random() < 0.5 ? 1 : 2;
+        brick.rangeMin = 1;
+        brick.rangeMax = 3;
+        brick.protected = true;
+      });
+      const threeCount = Math.max(
+        1,
+        Math.round(tail.length * (BRICK_LAYOUT.lowTailThreeShare ?? 0.1)),
+      );
+      shuffle(tail).slice(0, threeCount).forEach((brick) => {
+        brick.hp = 3;
+      });
+      tail.forEach((brick) => {
+        brick.maxHp = brick.hp;
+      });
+    }
+
     return bricks;
   }
 
@@ -1260,7 +1290,7 @@
     let guard = 0;
 
     while (total < target && guard < 12000) {
-      const candidates = bricks.filter((brick) => brick.hp < brick.rangeMax);
+      const candidates = bricks.filter((brick) => !brick.protected && brick.hp < brick.rangeMax);
       if (!candidates.length) return false;
       const brick = candidates[Math.floor(Math.random() * candidates.length)];
       const room = brick.rangeMax - brick.hp;
@@ -1271,7 +1301,7 @@
     }
 
     while (total > target && guard < 24000) {
-      const candidates = bricks.filter((brick) => brick.hp > brick.rangeMin && brick.hp > 1);
+      const candidates = bricks.filter((brick) => !brick.protected && brick.hp > brick.rangeMin && brick.hp > 1);
       if (!candidates.length) return false;
       const brick = candidates[Math.floor(Math.random() * candidates.length)];
       const room = brick.hp - brick.rangeMin;
@@ -1358,11 +1388,11 @@
       let total = fallback.reduce((sum, brick) => sum + brick.hp, 0);
       let guard = 0;
       while (total < targetHp && guard < 5000) {
-        const brick = fallback[Math.floor(Math.random() * fallback.length)];
-        if (brick.hp < 10) {
-          brick.hp += 1;
-          total += 1;
-        }
+        const candidates = fallback.filter((brick) => !brick.protected && brick.hp < 10);
+        if (!candidates.length) break;
+        const brick = candidates[Math.floor(Math.random() * candidates.length)];
+        brick.hp += 1;
+        total += 1;
         guard += 1;
       }
       fallback.forEach((brick) => {
