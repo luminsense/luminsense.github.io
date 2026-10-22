@@ -10,10 +10,11 @@
   // Constants
   // ------------------------------------------------------------
 
-  const W = 1280;
-  const H = 760;
+  let W = 1280;
+  let H = 760;
+  let canvasDprCap = 2;
 
-  const FIELD = {
+  let FIELD = {
     left: 44,
     top: 106,
     right: 1236,
@@ -24,19 +25,21 @@
   FIELD.centerX = FIELD.left + FIELD.width / 2;
   FIELD.centerY = FIELD.top + FIELD.height / 2;
 
-  const PADDLE = {
+  let PADDLE = {
     y: 666,
     height: 18,
     baseWidth: 176,
     extensionStep: 52.5,
   };
-  const MAX_PADDLE_WIDTH = FIELD.width / 2;
-  const MAX_EXTENSION = MAX_PADDLE_WIDTH - PADDLE.baseWidth;
+  let MAX_PADDLE_WIDTH = FIELD.width / 2;
+  let MAX_EXTENSION = MAX_PADDLE_WIDTH - PADDLE.baseWidth;
 
-  const BALL_RADIUS = 9;
+  let BALL_RADIUS = 9;
   const FIXED_STEP = 1 / 120;
   const MAX_BALLS = 240;
-  const POWERUP_FALL_SPEED = 132;
+  let POWERUP_FALL_SPEED = 132;
+  let BRICK_LAYOUT = null;
+  let WORLD_SPEED_SCALE = 1;
 
   const SPEEDS = [300, 370, 480, 610, 745];
   const DIFFICULTY = [
@@ -51,13 +54,21 @@
   const SPEED_MULTIPLIERS = [1, 1.25, 1.5, 1.75, 2];
 
   // Total brick durability presets. 3 is intended as the balanced setting.
+  // Portrait has more bricks, so its targets are scaled by the exact brick
+  // count ratio (137 / 71) and rounded to whole HP.
+  const LANDSCAPE_BRICK_TOTAL = 71;
+  const PORTRAIT_BRICK_TOTAL = 137;
+  const PORTRAIT_DURABILITY_RATIO = PORTRAIT_BRICK_TOTAL / LANDSCAPE_BRICK_TOTAL;
   const DURABILITY_LEVELS = [
     { name: "轻量", hp: 170, display: "170", unit: "HP" },
     { name: "轻装", hp: 215, display: "215", unit: "HP" },
     { name: "标准", hp: 260, display: "260", unit: "HP" },
     { name: "厚重", hp: 305, display: "305", unit: "HP" },
     { name: "堡垒", hp: 350, display: "350", unit: "HP" },
-  ];
+  ].map((level) => ({
+    ...level,
+    portraitHp: Math.round(level.hp * PORTRAIT_DURABILITY_RATIO),
+  }));
 
   // Reward brick density presets. Level 1 grants the most rewards (50% of bricks),
   // level 5 the fewest (10%). The display order is reversed in the UI, but score
@@ -90,6 +101,75 @@
     [1, 3], // bottom row: fragile
   ];
 
+  // Portrait rows keep the same top-to-bottom durability gradient while
+  // allowing the lower target totals to remain reachable with more bricks.
+  const PORTRAIT_ROW_HP_RANGES = [
+    [3, 10],
+    [2, 10],
+    [2, 9],
+    [1, 8],
+    [1, 7],
+    [1, 6],
+    [1, 5],
+    [1, 4],
+    [1, 4],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+  ];
+
+  const BOARD_CONFIGS = {
+    landscape: {
+      W: 1280,
+      H: 760,
+      field: { left: 44, top: 106, right: 1236, bottom: 724 },
+      paddle: { y: 666, height: 18, baseRatio: 176 / 1280 },
+      ballRadius: 9,
+      speedScale: 1,
+      keyboardScale: 1,
+      powerupFall: 132,
+      brick: {
+        cols: 12,
+        rows: 7,
+        padX: 14,
+        gapX: 3,
+        gapY: 6,
+        height: 28,
+        topOffset: 48,
+        echoFrom: 1,
+        ranges: ROW_HP_RANGES,
+      },
+    },
+    portrait: {
+      W: 720,
+      H: 1280,
+      field: { left: 24, top: 92, right: 696, bottom: 1210 },
+      paddle: { y: 1050, height: 24, baseRatio: 112 / 720 },
+      ballRadius: 11,
+      speedScale: 0.82,
+      keyboardScale: 720 / 1280,
+      powerupFall: 112,
+      brick: {
+        cols: 9,
+        rows: 18,
+        padX: 16,
+        gapX: 3,
+        gapY: 6,
+        heightRatio: 0.5,
+        topOffset: 42,
+        echoFrom: 11,
+        ranges: PORTRAIT_ROW_HP_RANGES,
+      },
+    },
+  };
+
+  const DESKTOP_PORTRAIT_MAX_WIDTH = 820;
   const LOWER_REWARD_SHARE = 0.3;
   const BUFF_DURATIONS = { C: 10, E: 5 };
   const LEADERBOARD_KEY = "brickBreakerDemo.leaderboard.v2";
@@ -194,9 +274,14 @@
     keyboardSpeedOptions: document.getElementById("keyboardSpeedOptions"),
     pauseKeyboardOptions: document.getElementById("pauseKeyboardOptions"),
     pauseKeyboardReadout: document.getElementById("pauseKeyboardReadout"),
+    pauseKeyboardSetting: document.querySelector(".pause-setting"),
+    pauseKeyGuide: document.querySelector(".pause-key-guide"),
     playerName: document.getElementById("playerName"),
     nameDiceButton: document.getElementById("nameDiceButton"),
     startButton: document.getElementById("startButton"),
+    boardIndicator: document.getElementById("boardIndicator"),
+    boardStatusText: document.getElementById("boardStatusText"),
+    keyboardSettingBlock: document.querySelector(".setting-support"),
     statusPill: document.getElementById("statusPill"),
     statusText: document.getElementById("statusText"),
     buffRail: document.getElementById("buffRail"),
@@ -205,11 +290,21 @@
     toastTitle: document.getElementById("toastTitle"),
     toastSubtitle: document.getElementById("toastSubtitle"),
     launchHint: document.getElementById("launchHint"),
+    launchHintTitle: document.getElementById("launchHintTitle"),
+    launchHintSubtitle: document.getElementById("launchHintSubtitle"),
     leaderboard: document.querySelector(".leaderboard"),
+    leaderboardTitle: document.getElementById("leaderboardTitle"),
+    leaderboardSubtitle: document.getElementById("leaderboardSubtitle"),
+    leaderboardBoardChip: document.getElementById("leaderboardBoardChip"),
     leaderboardFilters: document.getElementById("leaderboardFilters"),
     leaderboardList: document.getElementById("leaderboardList"),
+    leaderboardPagination: document.getElementById("leaderboardPagination"),
+    leaderboardPrev: document.getElementById("leaderboardPrev"),
+    leaderboardNext: document.getElementById("leaderboardNext"),
+    leaderboardPageInfo: document.getElementById("leaderboardPageInfo"),
     leaderboardEmpty: document.getElementById("leaderboardEmpty"),
     leaderboardCount: document.getElementById("leaderboardCount"),
+    mobilePauseButton: document.getElementById("mobilePauseButton"),
     deleteLeaderboardButton: document.getElementById("deleteLeaderboardButton"),
     deleteLeaderboardModal: document.getElementById("deleteLeaderboardModal"),
     cancelDeleteButton: document.getElementById("cancelDeleteButton"),
@@ -244,7 +339,7 @@
   };
 
   function setupCanvas() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, canvasDprCap);
     const targetW = Math.round(W * dpr);
     const targetH = Math.round(H * dpr);
     if (canvas.width !== targetW || canvas.height !== targetH) {
@@ -328,7 +423,8 @@
   }
 
   function createStars() {
-    return Array.from({ length: 88 }, () => ({
+    const count = game.menuBoard === "portrait" ? 56 : 88;
+    return Array.from({ length: count }, () => ({
       x: random(FIELD.left, FIELD.right),
       y: random(FIELD.top, FIELD.bottom),
       radius: random(0.35, 1.45),
@@ -783,6 +879,9 @@
 
   const game = {
     mode: "menu",
+    isMobile: false,
+    menuBoard: "landscape",
+    roundBoard: null,
     speedIndex: 3,
     durabilityIndex: 3,
     rewardIndex: 3,
@@ -821,9 +920,12 @@
     winTimer: null,
     failTimer: null,
     toastTimer: null,
+    pauseReason: null,
+    mobileTouchPositioned: false,
     buffSignature: "",
     buffNodes: new Map(),
     leaderboardFilter: "win",
+    leaderboardPage: 1,
     leaderboardEntries: [],
     brickId: 0,
     powerupId: 0,
@@ -852,19 +954,200 @@
     right: false,
   };
 
+  const touchState = {
+    active: false,
+    pointerId: null,
+    lastTime: 0,
+    startX: 0,
+    startY: 0,
+    moved: false,
+    pendingLaunch: false,
+  };
+
+  function getActiveBoard() {
+    if (game.mode === "menu") return game.menuBoard;
+    return game.roundBoard || game.menuBoard;
+  }
+
+  function getBoardSpeedScale(board = getActiveBoard()) {
+    return BOARD_CONFIGS[board]?.speedScale ?? 1;
+  }
+
+  function getBoardKeyboardScale(board = getActiveBoard()) {
+    return BOARD_CONFIGS[board]?.keyboardScale ?? 1;
+  }
+
+  function getDurabilityHp(index, board = getActiveBoard()) {
+    const safe = clamp(Math.round(index), 1, DURABILITY_LEVELS.length);
+    const level = DURABILITY_LEVELS[safe - 1];
+    return board === "portrait" ? level.portraitHp : level.hp;
+  }
+
+  function updateDurabilityUI() {
+    const board = getActiveBoard();
+    const safe = clamp(Math.round(game.durabilityIndex), 1, DURABILITY_LEVELS.length);
+    const level = DURABILITY_LEVELS[safe - 1];
+    game.targetDurability = getDurabilityHp(safe, board);
+
+    if (dom.durabilityReadout) {
+      dom.durabilityReadout.textContent = board === "portrait"
+        ? `${level.name} · ${game.targetDurability} HP`
+        : level.name;
+    }
+
+    if (dom.durabilityOptions) {
+      dom.durabilityOptions.querySelectorAll(".rail-node").forEach((node, index) => {
+        const nodeLevel = DURABILITY_LEVELS[index];
+        if (!nodeLevel) return;
+        const hp = getDurabilityHp(index + 1, board);
+        const label = node.querySelector(".rail-label");
+        if (label) label.textContent = board === "portrait" ? String(hp) : nodeLevel.name;
+        node.setAttribute("aria-label", `砖块总耐久 ${index + 1} 档 · ${nodeLevel.name} ${hp} HP`);
+        node.title = `${nodeLevel.name} · ${hp} HP`;
+      });
+    }
+  }
+
+  function configureBoard(boardName) {
+    const config = BOARD_CONFIGS[boardName] || BOARD_CONFIGS.landscape;
+    const field = config.field;
+    W = config.W;
+    H = config.H;
+    FIELD = {
+      ...field,
+      width: field.right - field.left,
+      height: field.bottom - field.top,
+    };
+    FIELD.centerX = FIELD.left + FIELD.width / 2;
+    FIELD.centerY = FIELD.top + FIELD.height / 2;
+
+    const baseWidth = W * config.paddle.baseRatio;
+    PADDLE = {
+      y: config.paddle.y,
+      height: config.paddle.height,
+      baseWidth,
+      extensionStep: (FIELD.width / 2 - baseWidth) / 8,
+    };
+    MAX_PADDLE_WIDTH = FIELD.width / 2;
+    MAX_EXTENSION = MAX_PADDLE_WIDTH - PADDLE.baseWidth;
+    BALL_RADIUS = config.ballRadius;
+    POWERUP_FALL_SPEED = config.powerupFall;
+    WORLD_SPEED_SCALE = config.speedScale;
+    BRICK_LAYOUT = config.brick;
+    canvasDprCap = boardName === "portrait" ? 1.25 : 2;
+
+    stage.dataset.board = boardName;
+    canvas.setAttribute("aria-label", boardName === "portrait"
+      ? "Brick Breaker 竖屏游戏区域"
+      : "Brick Breaker 游戏区域");
+    setupCanvas();
+
+    paddle.y = PADDLE.y;
+    paddle.height = PADDLE.height;
+    paddle.width = PADDLE.baseWidth;
+    paddle.x = FIELD.centerX;
+    paddle.targetX = FIELD.centerX;
+    paddle.vx = 0;
+    game.speed = SPEEDS[game.speedIndex - 1] * WORLD_SPEED_SCALE;
+    game.keyboardSpeed = KEYBOARD_SPEEDS[game.keyboardSpeedIndex - 1] * (config.keyboardScale ?? 1);
+    touchState.active = false;
+    touchState.pointerId = null;
+  }
+
+  function detectMobileDevice() {
+    const ua = navigator.userAgent || "";
+    const uaMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua);
+    const dataMobile = navigator.userAgentData?.mobile === true;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const noHover = window.matchMedia("(hover: none)").matches;
+    const touchPoints = navigator.maxTouchPoints || 0;
+    return uaMobile || dataMobile || (
+      touchPoints > 1
+      && coarse
+      && noHover
+      && window.innerWidth <= 1024
+    );
+  }
+
+  function detectMenuBoard() {
+    if (game.isMobile) return "portrait";
+    return window.innerWidth < DESKTOP_PORTRAIT_MAX_WIDTH ? "portrait" : "landscape";
+  }
+
+  function syncDeviceClasses() {
+    const landscape = window.innerWidth > window.innerHeight;
+    document.body.classList.toggle("is-mobile", game.isMobile);
+    document.body.classList.toggle(
+      "is-mobile-landscape",
+      game.isMobile && landscape,
+    );
+    if (dom.keyboardSettingBlock) dom.keyboardSettingBlock.hidden = game.isMobile;
+    if (dom.pauseKeyboardSetting) dom.pauseKeyboardSetting.hidden = game.isMobile;
+    if (dom.pauseKeyGuide) dom.pauseKeyGuide.hidden = game.isMobile;
+  }
+
+  function updateLaunchHintCopy() {
+    if (game.isMobile) {
+      dom.launchHintTitle.textContent = game.mobileTouchPositioned
+        ? "挡板已就位"
+        : "首次拖动圆盘定位";
+      dom.launchHintSubtitle.textContent = "再次点击圆盘 · 发射弹珠";
+    } else {
+      dom.launchHintTitle.textContent = "点击鼠标左键 / 空格键 · 发射弹珠";
+      dom.launchHintSubtitle.textContent = "移动鼠标或使用 A / D 键调整反弹板";
+    }
+  }
+
+  function updateBoardStatus() {
+    const portrait = game.menuBoard === "portrait";
+    dom.boardIndicator.dataset.board = game.menuBoard;
+    dom.boardIndicator.classList.toggle("is-mobile", game.isMobile);
+    dom.boardStatusText.textContent = game.isMobile
+      ? "手机端仅能竖屏进行游戏"
+      : `下一局游戏为${portrait ? "竖屏" : "横屏"}版`;
+  }
+
+  function applyMenuBoard(force = false) {
+    if (game.mode !== "menu") return false;
+    const next = detectMenuBoard();
+    if (!force && next === game.menuBoard) {
+      updateBoardStatus();
+      renderLeaderboard();
+      return false;
+    }
+    game.menuBoard = next;
+    configureBoard(next);
+    game.stars = createStars();
+    game.ambientBricks = createBrickGrid(true);
+    game.leaderboardPage = 1;
+    updateBoardStatus();
+    updateLaunchHintCopy();
+    updateDurabilityUI();
+    renderLeaderboard();
+    const menu = document.querySelector(".menu");
+    if (menu) menu.scrollTop = 0;
+    return true;
+  }
+
   // ------------------------------------------------------------
   // Level generation
   // ------------------------------------------------------------
 
   function buildBrickLayout(ambient = false) {
-    const cols = 12;
-    const rows = 7;
-    const padX = 14;
-    const gapX = 3;
-    const gapY = 6;
-    const brickHeight = 28;
-    const topOffset = 48;
+    const {
+      cols,
+      rows,
+      padX,
+      gapX,
+      gapY,
+      height: fixedBrickHeight,
+      heightRatio,
+      topOffset,
+      echoFrom,
+      ranges,
+    } = BRICK_LAYOUT;
     const brickWidth = (FIELD.width - padX * 2 - gapX * (cols - 1)) / cols;
+    const brickHeight = heightRatio ? brickWidth * heightRatio : fixedBrickHeight;
     const startX = FIELD.left + padX;
     const startY = FIELD.top + topOffset;
     const bricks = [];
@@ -878,15 +1161,14 @@
     );
 
     for (let row = 0; row < rows; row += 1) {
-      const [minHp, maxHp] = ROW_HP_RANGES[row];
+      const [minHp, maxHp] = ranges[Math.min(row, ranges.length - 1)];
       const channelCol = channelAt(row);
       const echoCol = (channelCol + channelDirection * 2 + cols * 2) % cols;
 
       for (let col = 0; col < cols; col += 1) {
-        // The second, offset slot appears in every row but the top one. With
-        // 12 columns and 7 rows this keeps the deliberate-open-slot share at
-        // 13 / 84 ≈ 15.5%, matching the previous 11 / 70 ≈ 15.7%.
-        const isPatternGap = col === channelCol || (row >= 1 && col === echoCol);
+        // The offset echo keeps a roughly constant deliberate-open share while
+        // the stair-step main channel runs through every row.
+        const isPatternGap = col === channelCol || (row >= echoFrom && col === echoCol);
         if (isPatternGap) continue;
 
         const durability = randomInt(minHp, maxHp);
@@ -902,6 +1184,8 @@
           row,
           hp: durability,
           maxHp: durability,
+          rangeMin: minHp,
+          rangeMax: maxHp,
           reward: false,
           flash: 0,
           seed: Math.random() * 1000,
@@ -919,10 +1203,10 @@
     let guard = 0;
 
     while (total < target && guard < 12000) {
-      const candidates = bricks.filter((brick) => brick.hp < ROW_HP_RANGES[brick.row][1]);
+      const candidates = bricks.filter((brick) => brick.hp < brick.rangeMax);
       if (!candidates.length) return false;
       const brick = candidates[Math.floor(Math.random() * candidates.length)];
-      const room = ROW_HP_RANGES[brick.row][1] - brick.hp;
+      const room = brick.rangeMax - brick.hp;
       const increase = Math.min(room, target - total, randomInt(1, 3));
       brick.hp += increase;
       total += increase;
@@ -930,10 +1214,10 @@
     }
 
     while (total > target && guard < 24000) {
-      const candidates = bricks.filter((brick) => brick.hp > ROW_HP_RANGES[brick.row][0] && brick.hp > 1);
+      const candidates = bricks.filter((brick) => brick.hp > brick.rangeMin && brick.hp > 1);
       if (!candidates.length) return false;
       const brick = candidates[Math.floor(Math.random() * candidates.length)];
-      const room = brick.hp - ROW_HP_RANGES[brick.row][0];
+      const room = brick.hp - brick.rangeMin;
       const decrease = Math.min(room, total - target, randomInt(1, 2));
       brick.hp -= decrease;
       total -= decrease;
@@ -994,7 +1278,7 @@
       return bricks;
     }
 
-    const targetHp = DURABILITY_LEVELS[game.durabilityIndex - 1].hp;
+    const targetHp = getDurabilityHp(game.durabilityIndex, getActiveBoard());
     const rewardRatio = REWARD_LEVELS[game.rewardIndex - 1].ratio;
 
     for (let attempt = 0; attempt < 24; attempt += 1) {
@@ -1057,7 +1341,7 @@
   }
 
   function requestGamePointerLock() {
-    if (game.mode !== "playing" || isGamePointerLocked()) return;
+    if (game.isMobile || game.mode !== "playing" || isGamePointerLocked()) return;
     const request = stage.requestPointerLock || stage.webkitRequestPointerLock;
     if (!request) return;
     try {
@@ -1095,6 +1379,10 @@
   function setMode(mode) {
     if (mode !== "playing") releaseGamePointerLock();
     game.mode = mode;
+    dom.mobilePauseButton?.classList.toggle(
+      "is-visible",
+      game.isMobile && mode === "playing",
+    );
     dom.stage.dataset.mode = mode;
     dom.statusPill.dataset.mode = mode;
     dom.statusText.textContent = STATUS_COPY[mode] || "待机中";
@@ -1330,14 +1618,14 @@
     game[config.stateKey] = safe;
 
     if (type === "speed") {
-      game.speed = SPEEDS[safe - 1];
+      game.speed = SPEEDS[safe - 1] * getBoardSpeedScale(getActiveBoard());
     } else if (type === "durability") {
-      game.targetDurability = DURABILITY_LEVELS[safe - 1].hp;
+      game.targetDurability = getDurabilityHp(safe, getActiveBoard());
     } else if (type === "reward") {
       game.rewardRatio = REWARD_LEVELS[safe - 1].ratio;
       game.rewardBrickCount = 0;
     } else if (type === "keyboard") {
-      game.keyboardSpeed = KEYBOARD_SPEEDS[safe - 1];
+      game.keyboardSpeed = KEYBOARD_SPEEDS[safe - 1] * getBoardKeyboardScale(getActiveBoard());
     }
 
     getSettingContainers(type).forEach((container) => {
@@ -1357,7 +1645,7 @@
       dom.speedReadout.textContent = DIFFICULTY[safe - 1].name;
       dom.speedChipValue.textContent = pad(safe);
     } else if (type === "durability") {
-      dom.durabilityReadout.textContent = DURABILITY_LEVELS[safe - 1].name;
+      updateDurabilityUI();
     } else if (type === "reward") {
       dom.rewardReadout.textContent = REWARD_LEVELS[safe - 1].name;
     } else if (type === "keyboard") {
@@ -1496,6 +1784,7 @@
         )).map((entry) => ({
           ...entry,
           name: normalizePlayerName(entry.name),
+          board: entry.board === "portrait" ? "portrait" : "landscape",
           score: Math.max(0, Math.round(Number(entry.score))),
         }))
         : [];
@@ -1519,6 +1808,7 @@
       score: settlement.finalScore,
       baseScore: settlement.baseScore,
       outcome: settlement.outcome,
+      board: settlement.board || "landscape",
       time: settlement.time,
       speedIndex: settlement.speedIndex,
       durabilityIndex: settlement.durabilityIndex,
@@ -1529,6 +1819,7 @@
     };
     game.leaderboardEntries.push(entry);
     game.leaderboardEntries.sort((a, b) => b.score - a.score || b.at - a.at);
+    game.leaderboardPage = 1;
     saveLeaderboard();
     renderLeaderboard();
   }
@@ -1537,6 +1828,17 @@
     if (!dom.leaderboardList) return;
 
     const filter = game.leaderboardFilter;
+    const board = game.menuBoard || "landscape";
+    const boardLabel = board === "portrait" ? "竖屏" : "横屏";
+    const filterLabel = filter === "all" ? "全部战绩" : "通关榜";
+    dom.leaderboard.dataset.board = board;
+    dom.leaderboardBoardChip.textContent = boardLabel;
+    dom.leaderboardBoardChip.dataset.board = board;
+    dom.leaderboardTitle.textContent = `${boardLabel}${filterLabel}`;
+    dom.leaderboardSubtitle.textContent = filter === "win"
+      ? `横屏与竖屏排行榜独立保存；当前仅显示${boardLabel}通关记录。`
+      : `横屏与竖屏排行榜独立保存；当前显示${boardLabel}全部战绩。`;
+
     dom.leaderboardFilters.querySelectorAll("button").forEach((button) => {
       const active = button.dataset.filter === filter;
       button.classList.toggle("is-active", active);
@@ -1544,24 +1846,48 @@
     });
 
     const entries = game.leaderboardEntries
+      .filter((entry) => entry.board === board)
       .filter((entry) => filter === "all" || entry.outcome === "win")
       .sort((a, b) => b.score - a.score || b.at - a.at);
+
+    const paginate = board === "portrait";
+    const pageSize = 10;
+    const totalPages = paginate ? Math.max(1, Math.ceil(entries.length / pageSize)) : 1;
+    if (paginate) {
+      game.leaderboardPage = clamp(game.leaderboardPage || 1, 1, totalPages);
+    } else {
+      game.leaderboardPage = 1;
+    }
+    const pageOffset = paginate ? (game.leaderboardPage - 1) * pageSize : 0;
+    const visibleEntries = paginate
+      ? entries.slice(pageOffset, pageOffset + pageSize)
+      : entries;
 
     dom.leaderboardList.innerHTML = "";
     dom.leaderboard.classList.toggle("is-empty", entries.length === 0);
     dom.leaderboardEmpty.textContent = filter === "win"
-      ? "还没有成功战绩，完成一局后会保存在本机。"
-      : "还没有战绩记录，来打一局吧。";
+      ? `还没有${boardLabel}通关战绩，完成一局后会保存在本机。`
+      : `还没有${boardLabel}战绩记录，来打一局吧。`;
     dom.leaderboardCount.textContent = String(entries.length);
     dom.deleteLeaderboardButton.disabled = game.leaderboardEntries.length === 0;
 
-    entries.forEach((entry, index) => {
+    if (dom.leaderboardPagination && dom.leaderboardPrev && dom.leaderboardNext && dom.leaderboardPageInfo) {
+      const showPagination = paginate && totalPages > 1;
+      dom.leaderboardPagination.hidden = !showPagination;
+      if (showPagination) {
+        dom.leaderboardPageInfo.textContent = `第 ${game.leaderboardPage} / ${totalPages} 页`;
+        dom.leaderboardPrev.disabled = game.leaderboardPage <= 1;
+        dom.leaderboardNext.disabled = game.leaderboardPage >= totalPages;
+      }
+    }
+
+    visibleEntries.forEach((entry, index) => {
       const row = document.createElement("div");
       row.className = "leaderboard-row";
 
       const rank = document.createElement("span");
       rank.className = "leaderboard-rank";
-      rank.textContent = pad(index + 1);
+      rank.textContent = pad(pageOffset + index + 1);
 
       const name = document.createElement("span");
       name.className = "leaderboard-player leaderboard-name";
@@ -1577,7 +1903,7 @@
       const config = document.createElement("span");
       config.className = "leaderboard-config";
       config.textContent = Number.isFinite(entry.speedIndex)
-        ? `S${entry.speedIndex} · H${entry.durabilityIndex} · R${entry.rewardIndex}`
+        ? `S${entry.speedIndex}·H${entry.durabilityIndex}·R${entry.rewardIndex}`
         : "—";
 
       const time = document.createElement("span");
@@ -1604,6 +1930,7 @@
 
   function setLeaderboardFilter(filter) {
     game.leaderboardFilter = filter === "all" ? "all" : "win";
+    game.leaderboardPage = 1;
     renderLeaderboard();
   }
 
@@ -1632,6 +1959,7 @@
     }
 
     game.leaderboardEntries = [];
+    game.leaderboardPage = 1;
     try {
       window.localStorage.removeItem(LEADERBOARD_KEY);
     } catch (error) {
@@ -1709,6 +2037,7 @@
       durabilityIndex: game.durabilityIndex,
       rewardIndex: game.rewardIndex,
       time: game.playTime,
+      board: game.roundBoard || game.menuBoard,
       remainingBricks: game.bricks.length,
       remainingHp: totalRemainingHp(),
       at: Date.now(),
@@ -1776,9 +2105,15 @@
     hideModals();
     hideToast();
 
+    // Clicking "play again" keeps the board locked from the previous round;
+    // only returning to the start page allows the orientation to change.
+    game.roundBoard = game.roundBoard || game.menuBoard;
+    configureBoard(game.roundBoard);
+
     game.playTime = 0;
     game.score = 0;
     game.lastSettlement = null;
+    game.pauseReason = null;
     game.powerups = [];
     game.particles = [];
     game.texts = [];
@@ -1794,9 +2129,9 @@
     game.effect.invincibleActive = false;
     game.effect.invincibleBank = 0;
     game.effect.extension = 0;
-    game.speed = SPEEDS[game.speedIndex - 1];
-    game.keyboardSpeed = KEYBOARD_SPEEDS[game.keyboardSpeedIndex - 1];
-    game.targetDurability = DURABILITY_LEVELS[game.durabilityIndex - 1].hp;
+    game.speed = SPEEDS[game.speedIndex - 1] * getBoardSpeedScale(game.roundBoard);
+    game.keyboardSpeed = KEYBOARD_SPEEDS[game.keyboardSpeedIndex - 1] * getBoardKeyboardScale(game.roundBoard);
+    game.targetDurability = getDurabilityHp(game.durabilityIndex, game.roundBoard);
     game.rewardRatio = REWARD_LEVELS[game.rewardIndex - 1].ratio;
     game.bricks = createBrickGrid(false);
     inputState.mode = "mouse";
@@ -1828,8 +2163,10 @@
     game.failTimer = null;
     game.accumulator = 0;
     game.lastFrame = performance.now();
+    game.mobileTouchPositioned = false;
 
     setMode("ready");
+    updateLaunchHintCopy();
     updateHUD();
     clearBuffRail();
   }
@@ -1872,6 +2209,8 @@
     game.effect.invincibleBank = 0;
     game.effect.extension = 0;
     game.lastSettlement = null;
+    game.pauseReason = null;
+    game.roundBoard = null;
     clearBuffRail();
     paddle.width = PADDLE.baseWidth;
     paddle.x = FIELD.centerX;
@@ -1880,6 +2219,7 @@
     inputState.left = false;
     inputState.right = false;
     setMode("menu");
+    applyMenuBoard(true);
     dom.playerName.value = game.playerName;
     updateHUD();
     renderLeaderboard();
@@ -1925,15 +2265,21 @@
 
     inputState.left = false;
     inputState.right = false;
+    touchState.active = false;
     paddle.vx = 0;
     game.accumulator = 0;
+    game.pauseReason = reason;
     setMode("paused");
 
     dom.pauseReason.textContent = reason === "mouseleave"
       ? "鼠标移出了游戏区域，本局已自动暂停。"
       : reason === "pointerlock"
         ? "鼠标锁定已解除，本局已自动暂停。"
-        : "按 Esc 或点击「继续游戏」返回战场。";
+        : reason === "mobile-landscape"
+          ? "手机端仅支持竖屏，游戏已暂停。请旋转回竖屏后继续。"
+          : reason === "mobile"
+            ? "游戏已暂停。点击「继续游戏」返回战场。"
+            : "按 Esc 或点击「继续游戏」返回战场。";
     dom.pauseModal.classList.add("is-open");
     window.setTimeout(() => dom.resumeButton.focus({ preventScroll: true }), 100);
   }
@@ -1941,6 +2287,7 @@
   function resumeGame() {
     if (game.mode !== "paused") return;
 
+    game.pauseReason = null;
     dom.pauseModal.classList.remove("is-open");
     dom.resumeButton.blur();
     inputState.left = false;
@@ -1977,7 +2324,7 @@
   }
 
   function syncPaddlePosition() {
-    const raw = inputState.mode === "keyboard"
+    const raw = (inputState.mode === "keyboard" || inputState.mode === "touch")
       ? paddle.targetX
       : (pointer.active ? pointer.x : FIELD.centerX);
     paddle.targetX = getDesiredPaddleX(raw);
@@ -2203,6 +2550,10 @@
     game.shake = Math.min(8, game.shake + 1.2);
   }
 
+  function getMaxBalls() {
+    return getActiveBoard() === "portrait" ? 120 : MAX_BALLS;
+  }
+
   function splitAllBalls(count) {
     const parents = game.balls.slice();
     const next = [];
@@ -2210,7 +2561,7 @@
 
     for (const parent of parents) {
       for (let index = 0; index < count; index += 1) {
-        if (next.length >= MAX_BALLS) break;
+        if (next.length >= getMaxBalls()) break;
         const angle = baseAngle + (index / count) * TAU + random(-0.23, 0.23);
         const offset = random(0, 7);
         next.push({
@@ -2242,6 +2593,9 @@
   // ------------------------------------------------------------
 
   function spawnParticles(x, y, color, count = 12, speed = 140, options = {}) {
+    const portrait = getActiveBoard() === "portrait";
+    const adjustedCount = portrait ? Math.max(3, Math.ceil(count * 0.65)) : count;
+    const particleCap = portrait ? 340 : 520;
     const {
       gravity = 180,
       size = 2,
@@ -2250,8 +2604,8 @@
       shape = "circle",
     } = options;
 
-    for (let index = 0; index < count; index += 1) {
-      if (game.particles.length > 520) game.particles.shift();
+    for (let index = 0; index < adjustedCount; index += 1) {
+      if (game.particles.length > particleCap) game.particles.shift();
       const angle = Math.random() * TAU;
       const velocity = random(0.25, 1) * speed;
       const maxLife = random(0.55, 1.25) * life;
@@ -2274,7 +2628,8 @@
   }
 
   function spawnRing(x, y, color, radius = 22, life = 0.45) {
-    if (game.particles.length > 540) game.particles.shift();
+    const cap = getActiveBoard() === "portrait" ? 360 : 540;
+    if (game.particles.length > cap) game.particles.shift();
     game.particles.push({
       type: "ring",
       x,
@@ -2376,7 +2731,8 @@
       }
 
       ball.trail.push({ x: ball.x, y: ball.y });
-      if (ball.trail.length > 8) ball.trail.shift();
+      const trailLimit = getActiveBoard() === "portrait" ? 5 : 8;
+      if (ball.trail.length > trailLimit) ball.trail.shift();
     }
 
     const lostBalls = game.balls.filter((ball) => ball.dead);
@@ -2821,6 +3177,7 @@
   }
 
   function drawBrick(brick, time, ambient) {
+    const portrait = game.roundBoard === "portrait";
     const palette = brick.reward ? REWARD_PALETTE : (BRICK_PALETTE[brick.hp] || BRICK_PALETTE[1]);
     const { x, y, w, h } = brick;
     const reveal = ambient ? 1 : clamp((time - brick.spawnAt) * 7, 0, 1);
@@ -2833,7 +3190,7 @@
       const pulse = 0.5 + Math.sin(time * 2.8 + brick.seed) * 0.5;
       ctx.save();
       ctx.shadowColor = `rgba(255, 196, 76, ${0.42 + pulse * 0.18})`;
-      ctx.shadowBlur = 20 + pulse * 9;
+      ctx.shadowBlur = portrait ? 9 + pulse * 4 : 20 + pulse * 9;
       ctx.strokeStyle = `rgba(255, 229, 147, ${0.38 + pulse * 0.24})`;
       ctx.lineWidth = 1.2;
       ctx.setLineDash([4, 4]);
@@ -2843,10 +3200,15 @@
       ctx.restore();
     }
 
-    const gradient = ctx.createLinearGradient(x, y, x, y + h);
-    gradient.addColorStop(0, palette.top);
-    gradient.addColorStop(0.45, palette.base);
-    gradient.addColorStop(1, palette.deep);
+    let gradient = brick.gradient;
+    if (!gradient || brick.gradientHp !== brick.hp) {
+      gradient = ctx.createLinearGradient(x, y, x, y + h);
+      gradient.addColorStop(0, palette.top);
+      gradient.addColorStop(0.45, palette.base);
+      gradient.addColorStop(1, palette.deep);
+      brick.gradient = gradient;
+      brick.gradientHp = brick.hp;
+    }
 
     roundRectPath(x, y, w, h, 6);
     ctx.fillStyle = gradient;
@@ -2863,15 +3225,20 @@
     ctx.fillRect(x + 1, y + 1, w - 2, 1.5);
 
     if (brick.reward) {
-      const shimmerX = x - w * 0.6 + ((time * 0.19 + brick.seed * 0.017) % 1.8) * w * 1.25;
-      const shimmer = ctx.createLinearGradient(shimmerX - 24, y, shimmerX + 24, y + h);
-      shimmer.addColorStop(0, "rgba(255, 255, 255, 0)");
-      shimmer.addColorStop(0.42, "rgba(255, 252, 231, 0.08)");
-      shimmer.addColorStop(0.5, "rgba(255, 253, 236, 0.48)");
-      shimmer.addColorStop(0.58, "rgba(255, 252, 231, 0.08)");
-      shimmer.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = shimmer;
-      ctx.fillRect(x, y, w, h);
+      // 600ms sweep, 300ms rest, then repeat.
+      const shimmerPhase = (time + brick.seed * 0.013) % 0.9;
+      if (shimmerPhase < 0.6) {
+        const shimmerProgress = shimmerPhase / 0.6;
+        const shimmerX = x - 24 + shimmerProgress * (w + 48);
+        const shimmer = ctx.createLinearGradient(shimmerX - 24, y, shimmerX + 24, y + h);
+        shimmer.addColorStop(0, "rgba(255, 255, 255, 0)");
+        shimmer.addColorStop(0.42, "rgba(255, 252, 231, 0.08)");
+        shimmer.addColorStop(0.5, "rgba(255, 253, 236, 0.48)");
+        shimmer.addColorStop(0.58, "rgba(255, 252, 231, 0.08)");
+        shimmer.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = shimmer;
+        ctx.fillRect(x, y, w, h);
+      }
 
       ctx.fillStyle = "rgba(45, 24, 3, 0.24)";
       ctx.beginPath();
@@ -2880,7 +3247,7 @@
 
       ctx.save();
       ctx.shadowColor = "rgba(255, 241, 185, 0.95)";
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = portrait ? 4 : 8;
       drawStar(x + 17, y + h / 2, 6.5, 2.7, 5, "rgba(255, 248, 208, 1)");
       ctx.restore();
     }
@@ -2936,12 +3303,13 @@
       ctx.restore();
     }
 
-    // Durability number.
-    ctx.font = "600 12px 'SFMono-Regular', Menlo, monospace";
+    // Durability number. In portrait it is larger, and reward bricks keep
+    // the same centred baseline as regular bricks despite their star badge.
+    ctx.font = `600 ${portrait ? 14 : 12}px 'SFMono-Regular', Menlo, monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = brick.reward ? "rgba(255, 246, 216, 0.95)" : "rgba(247, 254, 255, 0.9)";
-    const numberX = brick.reward ? x + w / 2 + 6 : x + w / 2;
+    const numberX = x + w / 2;
     if (brick.reward) {
       ctx.shadowColor = "rgba(84, 44, 3, 0.8)";
       ctx.shadowBlur = 3;
@@ -3396,6 +3764,7 @@
     }
 
     drawParticles();
+    if (canUseTouchControl()) drawTouchControl(time);
     ctx.restore();
 
     drawVignette();
@@ -3459,8 +3828,158 @@
     return ((clientX - rect.left) / rect.width) * W;
   }
 
+  function mapClientToWorld(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return { x: FIELD.centerX, y: FIELD.bottom };
+    return {
+      x: ((clientX - rect.left) / rect.width) * W,
+      y: ((clientY - rect.top) / rect.height) * H,
+    };
+  }
+
+  function getTouchControlPosition() {
+    return {
+      x: paddle.x,
+      y: FIELD.bottom - 75,
+      r: 38,
+    };
+  }
+
+  function canUseTouchControl() {
+    return game.isMobile
+      && game.roundBoard === "portrait"
+      && (game.mode === "ready" || game.mode === "playing");
+  }
+
+  function updateTouchControl(clientX, timeStamp) {
+    const now = timeStamp || performance.now();
+    const dt = clamp((now - touchState.lastTime) / 1000, 0.004, 0.09);
+    const point = mapClientToWorld(clientX, 0);
+    const previous = paddle.x;
+    const desired = getDesiredPaddleX(point.x);
+    const rawVelocity = (desired - previous) / dt;
+    paddle.vx = clamp(lerp(paddle.vx, rawVelocity, 0.68), -2400, 2400);
+    paddle.x = desired;
+    paddle.targetX = desired;
+    inputState.mode = "touch";
+    touchState.lastTime = now;
+    if (game.mode === "ready") updateStuckBall();
+  }
+
+  function startTouchControl(event) {
+    touchState.active = true;
+    touchState.pointerId = event.pointerId;
+    touchState.lastTime = event.timeStamp || performance.now();
+    inputState.mode = "touch";
+    try {
+      stage.setPointerCapture?.(event.pointerId);
+    } catch (error) {
+      // Synthetic events may not have an active pointer.
+    }
+    updateTouchControl(event.clientX, event.timeStamp);
+  }
+
+  function endTouchControl(event) {
+    if (!touchState.active) return;
+    if (event && touchState.pointerId !== event.pointerId) return;
+
+    const shouldLaunch = Boolean(
+      event
+      && event.type === "pointerup"
+      && game.mode === "ready"
+      && touchState.pendingLaunch
+      && !touchState.moved,
+    );
+
+    touchState.active = false;
+    touchState.pointerId = null;
+    touchState.pendingLaunch = false;
+    touchState.moved = false;
+    if (event) {
+      try {
+        if (stage.hasPointerCapture?.(event.pointerId)) {
+          stage.releasePointerCapture(event.pointerId);
+        }
+      } catch (error) {
+        // Ignore pointer capture that is already gone.
+      }
+    }
+
+    if (shouldLaunch) launchBall();
+  }
+
+  function drawTouchControl(time) {
+    if (!canUseTouchControl()) return;
+    const control = getTouchControlPosition();
+    const active = touchState.active;
+    const pulse = 0.5 + Math.sin(time * 3.2) * 0.5;
+    ctx.save();
+    ctx.lineCap = "round";
+
+    const line = ctx.createLinearGradient(
+      control.x,
+      paddle.y + paddle.height,
+      control.x,
+      control.y - control.r,
+    );
+    line.addColorStop(0, "rgba(92, 230, 255, 0.12)");
+    line.addColorStop(0.55, "rgba(92, 230, 255, 0.55)");
+    line.addColorStop(1, "rgba(169, 132, 255, 0.85)");
+    ctx.strokeStyle = line;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 6]);
+    ctx.beginPath();
+    ctx.moveTo(paddle.x, paddle.y + paddle.height - 1);
+    ctx.lineTo(control.x, control.y - control.r - 3);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.shadowColor = "rgba(92, 230, 255, 0.55)";
+    ctx.shadowBlur = active ? 26 : 14 + pulse * 8;
+    ctx.fillStyle = "rgba(5, 17, 28, 0.88)";
+    ctx.strokeStyle = active
+      ? "rgba(219, 253, 255, 0.95)"
+      : "rgba(92, 230, 255, 0.62)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(control.x, control.y, control.r, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(92, 230, 255, 0.24)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(control.x, control.y, control.r - 8, 0, TAU);
+    ctx.stroke();
+
+    const knob = ctx.createRadialGradient(
+      control.x - 4,
+      control.y - 5,
+      1,
+      control.x,
+      control.y,
+      16,
+    );
+    knob.addColorStop(0, "#f4ffff");
+    knob.addColorStop(0.45, "#8ff2ff");
+    knob.addColorStop(1, "#2ab7d9");
+    ctx.fillStyle = knob;
+    ctx.beginPath();
+    ctx.arc(control.x, control.y, active ? 14 : 12, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(4, 18, 27, 0.8)";
+    ctx.font = "700 9px 'PingFang SC', 'Microsoft YaHei', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("◀", control.x - 16, control.y + 1);
+    ctx.fillText("▶", control.x + 16, control.y + 1);
+    ctx.restore();
+  }
+
   function handlePointerMove(event) {
-    if (isGamePointerLocked()) return;
+    if (game.isMobile || isGamePointerLocked()) return;
 
     const now = event.timeStamp || performance.now();
     const dt = clamp((now - pointer.lastTime) / 1000, 0.004, 0.09);
@@ -3512,7 +4031,7 @@
   }
 
   function handlePointerLeavePage(event) {
-    if (isGamePointerLocked() || !pointer.active) return;
+    if (game.isMobile || isGamePointerLocked() || !pointer.active) return;
     const rect = canvas.getBoundingClientRect();
     let edgeX = null;
     if (event.clientX <= rect.left) edgeX = FIELD.left - 200;
@@ -3627,6 +4146,25 @@
     setLeaderboardFilter(button.dataset.filter);
   });
 
+  dom.leaderboardPrev.addEventListener("click", () => {
+    if (game.leaderboardPage > 1) {
+      game.leaderboardPage -= 1;
+      renderLeaderboard();
+    }
+  });
+
+  dom.leaderboardNext.addEventListener("click", () => {
+    const board = game.menuBoard || "landscape";
+    const entries = game.leaderboardEntries
+      .filter((entry) => entry.board === board)
+      .filter((entry) => game.leaderboardFilter === "all" || entry.outcome === "win");
+    const totalPages = Math.max(1, Math.ceil(entries.length / 10));
+    if (game.leaderboardPage < totalPages) {
+      game.leaderboardPage += 1;
+      renderLeaderboard();
+    }
+  });
+
   dom.deleteLeaderboardButton.addEventListener("click", openDeleteLeaderboardConfirm);
   dom.cancelDeleteButton.addEventListener("click", () => closeDeleteLeaderboardConfirm());
   dom.confirmDeleteButton.addEventListener("click", deleteLocalLeaderboard);
@@ -3636,11 +4174,53 @@
 
   stage.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
+
+    if (canUseTouchControl()) {
+      const point = mapClientToWorld(event.clientX, event.clientY);
+      const control = getTouchControlPosition();
+      const onControl = Math.hypot(point.x - control.x, point.y - control.y)
+        <= control.r + 30;
+      if (onControl) {
+        event.preventDefault();
+        const freshPositioning = game.mode === "ready" && !game.mobileTouchPositioned;
+        touchState.startX = event.clientX;
+        touchState.startY = event.clientY;
+        touchState.moved = false;
+        touchState.pendingLaunch = game.mode === "ready" && game.mobileTouchPositioned;
+        if (freshPositioning) {
+          game.mobileTouchPositioned = true;
+          updateLaunchHintCopy();
+        }
+        startTouchControl(event);
+        return;
+      }
+      if (game.mode === "ready") {
+        // A blank tap must never launch on mobile; the control owns launch.
+        event.preventDefault();
+      }
+      return;
+    }
+
     if (game.mode === "ready") {
       event.preventDefault();
       launchBall();
     }
   });
+
+  stage.addEventListener("pointermove", (event) => {
+    if (!touchState.active || touchState.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    if (!touchState.moved) {
+      const dx = event.clientX - touchState.startX;
+      const dy = event.clientY - touchState.startY;
+      if (Math.hypot(dx, dy) > 12) touchState.moved = true;
+    }
+    updateTouchControl(event.clientX, event.timeStamp);
+  }, { passive: false });
+
+  stage.addEventListener("pointerup", endTouchControl);
+  stage.addEventListener("pointercancel", endTouchControl);
+  stage.addEventListener("lostpointercapture", endTouchControl);
 
   stage.addEventListener("pointerleave", (event) => {
     if (event.pointerType === "touch" || isGamePointerLocked()) return;
@@ -3668,9 +4248,53 @@
     inputState.right = false;
   });
 
-  window.addEventListener("resize", () => {
-    setupCanvas();
-    if (game.mode === "ready") syncPaddlePosition();
+  let viewportUpdateFrame = 0;
+
+  function handleViewportChange() {
+    syncDeviceClasses();
+    const portrait = window.innerWidth <= window.innerHeight;
+    if (
+      game.isMobile
+      && !portrait
+      && game.mode === "playing"
+    ) {
+      pauseGame("mobile-landscape");
+    }
+    if (
+      game.mode === "paused"
+      && portrait
+      && game.pauseReason === "mobile-landscape"
+    ) {
+      game.pauseReason = "mobile";
+      dom.pauseReason.textContent = "游戏已暂停。点击「继续游戏」返回战场。";
+    }
+    if (game.mode === "menu") {
+      applyMenuBoard();
+    } else if (game.mode === "ready") {
+      syncPaddlePosition();
+    }
+    updateLaunchHintCopy();
+  }
+
+  function scheduleViewportChange() {
+    window.cancelAnimationFrame(viewportUpdateFrame);
+    viewportUpdateFrame = window.requestAnimationFrame(handleViewportChange);
+  }
+
+  window.addEventListener("resize", scheduleViewportChange);
+  window.addEventListener("orientationchange", () => {
+    window.setTimeout(scheduleViewportChange, 120);
+  });
+
+  dom.mobilePauseButton.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+  });
+
+  dom.mobilePauseButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (game.mode === "playing") pauseGame("mobile");
   });
 
   dom.soundButton.addEventListener("click", () => {
@@ -3707,6 +4331,10 @@
   // Boot
   // ------------------------------------------------------------
 
+  game.isMobile = detectMobileDevice();
+  syncDeviceClasses();
+  game.menuBoard = detectMenuBoard();
+  configureBoard(game.menuBoard);
   game.stars = createStars();
   game.ambientBricks = createBrickGrid(true);
   buildSettingGroup("speed");
@@ -3719,6 +4347,8 @@
   selectSetting("keyboard", 3);
   dom.playerName.value = pickRandomPlayerName();
   loadLeaderboard();
+  updateBoardStatus();
+  updateLaunchHintCopy();
   renderLeaderboard();
   game.playerName = normalizePlayerName(dom.playerName.value);
   setMode("menu");
@@ -3730,6 +4360,9 @@
     getState() {
       return {
         mode: game.mode,
+        isMobile: game.isMobile,
+        menuBoard: game.menuBoard,
+        roundBoard: game.roundBoard,
         playerName: game.playerName,
         speedIndex: game.speedIndex,
         ballSpeed: game.speed,
@@ -3756,6 +4389,7 @@
         pointerActive: pointer.active,
         pointerLocked: isGamePointerLocked(),
         leaderboardFilter: game.leaderboardFilter,
+        leaderboardPage: game.leaderboardPage,
         leaderboardEntries: game.leaderboardEntries.length,
         lastSettlement: game.lastSettlement,
         effects: {
@@ -3779,6 +4413,22 @@
         w: Math.round(brick.w),
         h: brick.h,
       }));
+    },
+    getBoardInfo() {
+      return {
+        board: getActiveBoard(),
+        isMobile: game.isMobile,
+        W,
+        H,
+        field: { ...FIELD },
+        paddle: { ...PADDLE },
+        ballRadius: BALL_RADIUS,
+        speedScale: WORLD_SPEED_SCALE,
+        keyboardScale: getBoardKeyboardScale(getActiveBoard()),
+        brickLayout: BRICK_LAYOUT,
+        canvasBacking: [canvas.width, canvas.height],
+        touchControl: getTouchControlPosition(),
+      };
     },
     start(speedIndex = 3, durabilityIndex = 3, rewardIndex = 3, name = null) {
       if (name !== null) {

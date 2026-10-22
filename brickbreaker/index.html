@@ -27,6 +27,9 @@
           <i class="status-dot" aria-hidden="true"></i>
           <span id="statusText">待机中</span>
         </span>
+        <button class="mobile-pause" id="mobilePauseButton" type="button" aria-label="暂停游戏">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>
+        </button>
         <button class="icon-button" id="soundButton" type="button" aria-label="关闭声音" aria-pressed="true" title="声音开关（音乐与音效）">
           <svg class="sound-on-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 9.3h3.2L12 5.5v13l-4.8-3.8H4z" />
@@ -100,8 +103,8 @@
       <div class="launch-hint" id="launchHint" aria-hidden="true">
         <span class="mouse-glyph"><i></i></span>
         <span class="launch-copy">
-          <strong>点击鼠标左键 / 空格键 · 发射弹珠</strong>
-          <small>移动鼠标或使用 A / D 键调整反弹板</small>
+          <strong id="launchHintTitle">点击鼠标左键 / 空格键 · 发射弹珠</strong>
+          <small id="launchHintSubtitle">移动鼠标或使用 A / D 键调整反弹板</small>
         </span>
       </div>
 
@@ -152,6 +155,10 @@
                 <h2>配置你的挑战</h2>
               </div>
               <span class="panel-status"><i></i> READY</span>
+            </div>
+
+            <div class="board-indicator" id="boardIndicator" data-board="landscape">
+              <span id="boardStatusText">下一局游戏为横屏版</span>
             </div>
 
             <div class="settings-list">
@@ -236,9 +243,10 @@
             <div class="leaderboard-title">
               <span>LOCAL LEADERBOARD / LOCAL STORAGE</span>
               <h3 id="leaderboardTitle">本机排行榜</h3>
-              <p>每局结算积分从高到低排列，默认仅展示成功记录。</p>
+              <p id="leaderboardSubtitle">每局结算积分从高到低排列，默认仅展示当前模式的通关记录。</p>
             </div>
             <div class="leaderboard-tools">
+              <span class="leaderboard-board-chip" id="leaderboardBoardChip" data-board="landscape">横屏</span>
               <span class="leaderboard-count"><strong id="leaderboardCount">0</strong> 局</span>
               <div class="leaderboard-filters" id="leaderboardFilters" role="group" aria-label="排行榜筛选">
                 <button class="is-active" type="button" data-filter="win" aria-pressed="true">成功记录</button>
@@ -256,6 +264,11 @@
             </div>
             <div class="leaderboard-list" id="leaderboardList"></div>
             <p class="leaderboard-empty" id="leaderboardEmpty">还没有成功战绩，完成一局后会保存在本机。</p>
+          </div>
+          <div class="leaderboard-pagination" id="leaderboardPagination" hidden>
+            <button class="leaderboard-page-button" id="leaderboardPrev" type="button">上一页</button>
+            <span class="leaderboard-page-info" id="leaderboardPageInfo" aria-live="polite">第 1 / 1 页</span>
+            <button class="leaderboard-page-button" id="leaderboardNext" type="button">下一页</button>
           </div>
         </section>
 
@@ -404,16 +417,16 @@
             <path d="m4 9 1-4 4 1M28 23l-1 4-4-1" />
           </svg>
         </span>
-        <span class="gate-eyebrow">PORTRAIT MODE</span>
-        <strong>请横屏进入战场</strong>
-        <p>本游戏支持鼠标与 A / D 键操控，建议在桌面端体验完整效果。</p>
+        <span class="gate-eyebrow">MOBILE · PORTRAIT ONLY</span>
+        <strong>手机端仅支持竖屏</strong>
+        <p>请将手机旋转至竖屏后继续游戏。横屏版本仅在桌面端提供。</p>
       </div>
     </main>
 
     <footer class="page-footer">
       <span><i class="footer-dot" aria-hidden="true"></i> 鼠标 / A D 控制反弹板 · ESC 暂停</span>
       <span class="footer-mid">NO DOWNLOADS · NO SIGN-UP · JUST BREAK</span>
-      <span>v0.8.0 / CANVAS ENGINE</span>
+      <span>v0.13.0 / CANVAS ENGINE</span>
     </footer>
   </div>
 

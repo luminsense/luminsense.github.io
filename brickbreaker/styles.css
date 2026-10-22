@@ -4948,3 +4948,1326 @@ button:focus-visible {
     white-space: nowrap;
   }
 }
+
+/* ============================================================
+   v9 — portrait board, phone layout and touch steering
+   ============================================================ */
+
+/* Portrait cabinet sizing. */
+.stage[data-board="portrait"] {
+  width: min(560px, calc(100vw - 32px), calc((100dvh - 150px) * 0.5625));
+  aspect-ratio: 720 / 1280;
+  border-radius: 22px;
+}
+
+body.is-mobile .page {
+  padding: 6px 5px 0;
+}
+
+body.is-mobile .topbar {
+  width: calc(100vw - 10px);
+  min-height: 34px;
+  margin-bottom: 5px;
+  padding: 0 3px;
+  gap: 10px;
+}
+
+body.is-mobile .brand-mark {
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+}
+
+body.is-mobile .brand-type strong {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+body.is-mobile .brand-type small,
+body.is-mobile .online-pill,
+body.is-mobile .page-footer {
+  display: none;
+}
+
+body.is-mobile .stage[data-board="portrait"] {
+  width: min(calc(100vw - 10px), calc((100dvh - 64px) * 0.5625));
+  border-radius: 16px;
+}
+
+/* Four independent ranking boards. */
+.leaderboard-board-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.7cqw;
+  padding: 0 0.55cqw;
+  border: 1px solid rgba(92, 230, 255, 0.24);
+  border-radius: 999px;
+  color: #7de9ff;
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 0.48cqw, 9px);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.leaderboard-board-chip[data-board="portrait"] {
+  color: #cdb8ff;
+  border-color: rgba(169, 132, 255, 0.32);
+  background: rgba(89, 57, 151, 0.18);
+}
+
+/* Orientation status on the setup panel. */
+.board-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.55cqw;
+  margin: 0 0 0.75cqw;
+  padding: 0.48cqw 0.68cqw;
+  border: 1px solid rgba(92, 230, 255, 0.16);
+  border-radius: 0.5cqw;
+  color: #9fc9d8;
+  background: rgba(8, 22, 35, 0.56);
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 0.55cqw, 11px);
+  letter-spacing: 0.035em;
+}
+
+.board-indicator[data-board="portrait"] {
+  color: #d9c9ff;
+  border-color: rgba(169, 132, 255, 0.24);
+  background: rgba(53, 35, 90, 0.24);
+}
+
+.board-indicator.is-mobile {
+  color: #ffd98d;
+  border-color: rgba(255, 212, 121, 0.25);
+  background: rgba(82, 58, 20, 0.22);
+}
+
+.board-indicator-icon {
+  position: relative;
+  width: 1.2cqw;
+  height: 1.2cqw;
+  min-width: 10px;
+  min-height: 10px;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.85;
+}
+
+.board-indicator-icon i {
+  position: absolute;
+  background: currentColor;
+  border-radius: 999px;
+}
+
+.board-indicator-icon i:first-child {
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  transform: translateX(-50%);
+}
+
+.board-indicator-icon i:last-child {
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* Phone-only pause control. */
+.mobile-pause {
+  position: absolute;
+  z-index: 8;
+  top: 2.1cqw;
+  left: 50%;
+  width: clamp(30px, 4.5cqw, 38px);
+  height: clamp(30px, 4.5cqw, 38px);
+  padding: 0;
+  display: none;
+  place-items: center;
+  transform: translateX(-50%);
+  border: 1px solid rgba(92, 230, 255, 0.3);
+  border-radius: 50%;
+  color: #bdf7ff;
+  background: rgba(5, 16, 27, 0.8);
+  box-shadow: 0 0 18px rgba(92, 230, 255, 0.12);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.mobile-pause svg {
+  width: 42%;
+  height: 42%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+body.is-mobile .stage[data-mode="playing"] .mobile-pause {
+  display: grid;
+}
+
+/* Portrait menu: title and setup stay in the first screen. */
+.stage[data-board="portrait"] .menu {
+  padding: 4.7cqw 4.8cqw 2.6cqw;
+}
+
+.stage[data-board="portrait"] .menu .menu-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin: 0;
+  gap: 2.6cqw;
+}
+
+.stage[data-board="portrait"] .menu-main {
+  display: block;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.stage[data-board="portrait"] .eyebrow {
+  margin-bottom: 1.8cqw;
+  font-size: clamp(8px, 1.7cqw, 10px);
+  letter-spacing: 0.12em;
+}
+
+.stage[data-board="portrait"] .game-title {
+  font-size: 15.2cqw;
+  line-height: 0.78;
+  letter-spacing: -0.065em;
+}
+
+.stage[data-board="portrait"] .menu-lead,
+.stage[data-board="portrait"] .menu-hints,
+.stage[data-board="portrait"] .power-legend {
+  display: none;
+}
+
+.stage[data-board="portrait"] .menu-panel {
+  width: 100%;
+  margin: 0;
+  padding: 3.1cqw 3.2cqw 2.7cqw;
+  border-radius: 1.4cqw;
+}
+
+.stage[data-board="portrait"] .panel-topline {
+  margin-bottom: 1.5cqw;
+  font-size: clamp(8px, 1.6cqw, 10px);
+}
+
+.stage[data-board="portrait"] .panel-heading {
+  margin-bottom: 1.6cqw;
+}
+
+.stage[data-board="portrait"] .panel-kicker {
+  display: none;
+}
+
+.stage[data-board="portrait"] .panel-heading h2 {
+  font-size: clamp(17px, 4.6cqw, 22px);
+}
+
+.stage[data-board="portrait"] .panel-status {
+  font-size: clamp(8px, 1.6cqw, 10px);
+}
+
+.stage[data-board="portrait"] .board-indicator {
+  margin-bottom: 2.2cqw;
+  padding: 1.4cqw 1.8cqw;
+  border-radius: 1.2cqw;
+  font-size: clamp(9px, 2.15cqw, 12px);
+}
+
+.stage[data-board="portrait"] .board-indicator-icon {
+  width: 3.2cqw;
+  height: 3.2cqw;
+  min-width: 12px;
+  min-height: 12px;
+}
+
+.stage[data-board="portrait"] .settings-list {
+  gap: 2.2cqw;
+  padding-top: 0;
+}
+
+.stage[data-board="portrait"] .setting-block {
+  gap: 1.1cqw;
+}
+
+.stage[data-board="portrait"] .setting-head > span,
+.pause-setting .setting-head > span {
+  font-size: clamp(12px, 2.9cqw, 15px);
+}
+
+.stage[data-board="portrait"] .setting-head em {
+  font-size: clamp(10px, 2.35cqw, 12px);
+}
+
+.stage[data-board="portrait"] .setting-head small {
+  display: none;
+}
+
+.stage[data-board="portrait"] .choice-rail {
+  height: 7.2cqw;
+  --rail-y: calc(0.18cqw + 0.22cqw + 0.33cqw);
+}
+
+.stage[data-board="portrait"] .rail-label {
+  font-size: clamp(8px, 2.15cqw, 10px);
+}
+
+.stage[data-board="portrait"] .rail-thumb {
+  width: 3.5cqw;
+  height: 3.5cqw;
+}
+
+.stage[data-board="portrait"] .rail-dot {
+  width: 2.1cqw;
+  height: 2.1cqw;
+}
+
+.stage[data-board="portrait"] .player-row {
+  margin-top: 1.8cqw;
+  gap: 1.5cqw;
+}
+
+.stage[data-board="portrait"] .player-row label {
+  flex-basis: 12.5cqw;
+  font-size: clamp(11px, 2.5cqw, 13px);
+}
+
+.stage[data-board="portrait"] .player-row label small {
+  display: none;
+}
+
+.stage[data-board="portrait"] .name-control {
+  gap: 1.2cqw;
+}
+
+.stage[data-board="portrait"] .name-input-wrap,
+.stage[data-board="portrait"] .name-dice {
+  height: 7.6cqw;
+}
+
+.stage[data-board="portrait"] .name-input-wrap {
+  padding: 0 1.8cqw;
+  gap: 1.1cqw;
+}
+
+.stage[data-board="portrait"] .name-input-wrap input {
+  font-size: clamp(11px, 2.65cqw, 14px);
+}
+
+.stage[data-board="portrait"] .name-input-wrap em {
+  font-size: clamp(7px, 1.5cqw, 9px);
+}
+
+.stage[data-board="portrait"] .name-dice {
+  width: 7.6cqw;
+}
+
+.stage[data-board="portrait"] .name-dice svg {
+  width: 3.3cqw;
+  height: 3.3cqw;
+}
+
+.stage[data-board="portrait"] .menu-panel .start-button {
+  height: 10.2cqw;
+  margin-top: 1.8cqw;
+}
+
+.stage[data-board="portrait"] .start-label strong {
+  font-size: clamp(15px, 3.8cqw, 19px);
+}
+
+.stage[data-board="portrait"] .start-label small {
+  font-size: clamp(7px, 1.6cqw, 9px);
+}
+
+.stage[data-board="portrait"] .start-arrow {
+  width: 6.2cqw;
+  height: 6.2cqw;
+}
+
+.stage[data-board="portrait"] .start-arrow svg {
+  width: 3cqw;
+  height: 3cqw;
+}
+
+.stage[data-board="portrait"] .menu-panel .panel-note {
+  display: none;
+}
+
+.stage[data-board="portrait"] .panel-credit {
+  margin-top: 1.5cqw;
+  font-size: clamp(7px, 1.6cqw, 9px);
+}
+
+/* Portrait leaderboard below the setup screen, inside the scroll area. */
+.stage[data-board="portrait"] .menu .leaderboard {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 3cqw auto 0;
+  padding: 2.2cqw 2.3cqw 2cqw;
+  border-radius: 1.5cqw;
+}
+
+.stage[data-board="portrait"] .leaderboard-title > span {
+  font-size: clamp(7px, 1.5cqw, 9px);
+}
+
+.stage[data-board="portrait"] .leaderboard-title h3 {
+  font-size: clamp(16px, 4.2cqw, 21px);
+}
+
+.stage[data-board="portrait"] .leaderboard-title p {
+  font-size: clamp(8px, 1.8cqw, 10px);
+  line-height: 1.5;
+}
+
+.stage[data-board="portrait"] .leaderboard-head {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.8cqw;
+}
+
+.stage[data-board="portrait"] .leaderboard-tools {
+  gap: 1.2cqw;
+}
+
+.stage[data-board="portrait"] .leaderboard-filters button {
+  padding: 1.5cqw 2.2cqw;
+  font-size: clamp(8px, 1.75cqw, 10px);
+}
+
+.stage[data-board="portrait"] .leaderboard-board-chip {
+  min-height: 5cqw;
+  padding: 0 2cqw;
+  font-size: clamp(8px, 1.7cqw, 10px);
+}
+
+.stage[data-board="portrait"] .leaderboard-col-head,
+.stage[data-board="portrait"] .leaderboard-row {
+  grid-template-columns:
+    5.6cqw
+    minmax(0, 1.35fr)
+    minmax(15.5cqw, 0.7fr)
+    minmax(12.5cqw, 0.52fr)
+    minmax(17cqw, 0.65fr);
+  column-gap: 1.1cqw;
+}
+
+.stage[data-board="portrait"] .leaderboard-col-head {
+  min-height: 5.2cqw;
+  padding: 0 1.2cqw 1.3cqw;
+  font-size: clamp(7px, 1.55cqw, 9px);
+}
+
+.stage[data-board="portrait"] .leaderboard-list {
+  height: 440px;
+  min-height: 440px;
+  max-height: 440px;
+  padding: 0.4cqw 1.2cqw 0;
+}
+
+.stage[data-board="portrait"] .leaderboard-row {
+  min-height: 43px;
+  font-size: clamp(9px, 2.1cqw, 12px);
+}
+
+.stage[data-board="portrait"] .leaderboard-config,
+.stage[data-board="portrait"] .leaderboard-time {
+  font-size: clamp(7px, 1.7cqw, 10px);
+  white-space: nowrap;
+}
+
+.stage[data-board="portrait"] .leaderboard-score {
+  font-size: clamp(10px, 2.3cqw, 14px);
+}
+
+.stage[data-board="portrait"] .leaderboard-empty {
+  min-height: 90px;
+  font-size: clamp(9px, 2.1cqw, 12px);
+}
+
+.stage[data-board="portrait"] .menu-footer {
+  display: flex;
+  margin-top: 2.6cqw;
+}
+
+/* Portrait HUD and launch prompt. */
+.stage[data-board="portrait"] .hud {
+  top: 2.4cqw;
+  left: 3.2cqw;
+  right: 3.2cqw;
+  gap: 1cqw;
+}
+
+.stage[data-board="portrait"] .speed-chip {
+  display: none;
+}
+
+.stage[data-board="portrait"] .hud-cluster {
+  min-height: 6.8cqw;
+  padding: 1.2cqw 1.6cqw;
+  gap: 1.1cqw;
+  border-radius: 1.4cqw;
+}
+
+.stage[data-board="portrait"] .hud-stat {
+  min-width: 6.3cqw;
+}
+
+.stage[data-board="portrait"] .hud-stat-small {
+  min-width: 3.7cqw;
+}
+
+.stage[data-board="portrait"] .hud-label {
+  font-size: clamp(7px, 1.55cqw, 9px);
+  letter-spacing: 0.1em;
+}
+
+.stage[data-board="portrait"] .hud-stat strong,
+.stage[data-board="portrait"] #scoreValue {
+  font-size: clamp(13px, 2.9cqw, 18px);
+}
+
+.stage[data-board="portrait"] .hud-divider {
+  height: 3.5cqw;
+}
+
+.stage[data-board="portrait"] .launch-hint {
+  top: 66%;
+  max-width: 84%;
+  padding: 2.2cqw 3cqw;
+  gap: 1.4cqw;
+  border-radius: 1.8cqw;
+}
+
+.stage[data-board="portrait"] .launch-copy strong {
+  font-size: clamp(11px, 2.7cqw, 14px);
+}
+
+.stage[data-board="portrait"] .launch-copy small {
+  font-size: clamp(9px, 2.1cqw, 11px);
+}
+
+body.is-mobile .mouse-glyph {
+  display: none;
+}
+
+.stage[data-board="portrait"] .toast {
+  top: 11cqw;
+  max-width: 86cqw;
+}
+
+.stage[data-board="portrait"] .buff-rail {
+  bottom: 1.2cqw;
+  gap: 1.2cqw;
+}
+
+body.is-mobile .buff-card {
+  width: 28cqw;
+  padding: 0.9cqw 1.2cqw 1cqw;
+}
+
+.stage[data-board="portrait"] .buff-icon {
+  width: 4.2cqw;
+  height: 4.2cqw;
+  min-width: 14px;
+  min-height: 14px;
+  font-size: clamp(7px, 1.65cqw, 9px);
+}
+
+/* Phone-only UI removals. */
+body.is-mobile .setting-support,
+body.is-mobile .pause-setting,
+body.is-mobile .pause-key-guide {
+  display: none !important;
+}
+
+body.is-mobile .pause-card {
+  width: min(86cqw, 360px);
+  padding: 6.5cqw 6cqw;
+}
+
+body.is-mobile .pause-actions {
+  margin-top: 5cqw;
+}
+
+/* Mobile landscape is not supported: cover the whole viewport. */
+body:not(.is-mobile-landscape) .orientation-gate {
+  display: none !important;
+}
+
+body.is-mobile-landscape .orientation-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3.2vw, 26px);
+  padding: 8vw;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 80% 65% at 50% 42%, rgba(18, 51, 76, 0.78), transparent 72%),
+    #04090f;
+  backdrop-filter: blur(8px);
+}
+
+body.is-mobile-landscape .orientation-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 15vw, 96px);
+  height: clamp(64px, 15vw, 96px);
+  margin-bottom: 2vw;
+  border: 1px solid rgba(92, 230, 255, 0.28);
+  border-radius: 22px;
+  color: var(--cyan);
+  background: rgba(33, 106, 137, 0.13);
+  box-shadow: 0 0 30px rgba(41, 166, 209, 0.12);
+}
+
+body.is-mobile-landscape .orientation-icon svg {
+  width: 54%;
+  height: 54%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+body.is-mobile-landscape .gate-eyebrow {
+  color: #648097;
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 1.9vw, 12px);
+  letter-spacing: 0.18em;
+}
+
+body.is-mobile-landscape .orientation-gate strong {
+  color: #f2fbff;
+  font-size: clamp(24px, 5.4vw, 40px);
+  font-weight: 620;
+  letter-spacing: 0.04em;
+}
+
+body.is-mobile-landscape .orientation-gate p {
+  max-width: 620px;
+  margin: 0;
+  color: #8093a8;
+  font-size: clamp(13px, 2.6vw, 17px);
+  line-height: 1.7;
+}
+
+/* Very small portrait cabinets. */
+@media (max-width: 370px) {
+  body.is-mobile .stage[data-board="portrait"] .menu {
+    padding: 4.2cqw;
+  }
+
+  .stage[data-board="portrait"] .game-title {
+    font-size: 14.2cqw;
+  }
+
+  .stage[data-board="portrait"] .menu .menu-content {
+    gap: 2.1cqw;
+  }
+
+  .stage[data-board="portrait"] .menu-panel {
+    padding: 2.6cqw 2.8cqw 2.4cqw;
+  }
+}
+
+.stage[data-board="portrait"] .launch-copy small {
+  display: block;
+  font-size: clamp(9px, 2.1cqw, 11px);
+  line-height: 1.45;
+}
+
+.stage[data-board="portrait"] .player-row label {
+  flex-basis: 16cqw;
+  font-size: clamp(10px, 2.4cqw, 13px);
+  white-space: nowrap;
+}
+
+body.is-mobile .pause-resume span {
+  display: none;
+}
+
+/* Portrait rail circles are larger, so keep the axis through their centres. */
+.stage[data-board="portrait"] .choice-rail {
+  --rail-y: calc(0.18cqw + 0.22cqw + 1.05cqw);
+}
+
+/* The phone pause control lives in the top bar so it never covers the HUD. */
+.topbar .mobile-pause {
+  position: static;
+  display: none;
+  width: 30px;
+  height: 30px;
+  transform: none;
+  border-radius: 50%;
+  color: #bdf7ff;
+  background: rgba(5, 16, 27, 0.72);
+  box-shadow: 0 0 14px rgba(92, 230, 255, 0.1);
+}
+
+.topbar .mobile-pause.is-visible {
+  display: grid;
+}
+
+/* The setup screen must accept vertical touch swipes; gameplay still owns
+   all touch gestures. */
+.stage[data-mode="menu"] {
+  touch-action: pan-y;
+}
+
+/* ============================================================
+   v10 — portrait difficulty trim, pause layout and performance
+   ============================================================ */
+
+/* The orientation status is one consistent colour in every direction. */
+.board-indicator,
+.board-indicator[data-board="portrait"],
+.board-indicator.is-mobile {
+  color: #9fc9d8;
+  border-color: rgba(92, 230, 255, 0.16);
+  background: rgba(8, 22, 35, 0.56);
+}
+
+/* Portrait pause screen: larger type, taller card, stacked actions. */
+.stage[data-board="portrait"] .pause-layer {
+  padding: 4cqw;
+}
+
+.stage[data-board="portrait"] .pause-card {
+  width: min(92cqw, 430px);
+  max-height: calc(100% - 8cqw);
+  padding: 4.2cqw 4.4cqw 4cqw;
+  overflow-y: auto;
+  border-radius: 3cqw;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(92, 230, 255, 0.22) transparent;
+}
+
+.stage[data-board="portrait"] .pause-emblem {
+  width: 9cqw;
+  height: 9cqw;
+  margin-bottom: 2.4cqw;
+  gap: 1cqw;
+}
+
+.stage[data-board="portrait"] .pause-emblem i {
+  width: 0.8cqw;
+  height: 3.2cqw;
+  border-radius: 99px;
+}
+
+.stage[data-board="portrait"] .pause-eyebrow {
+  font-size: clamp(9px, 2cqw, 11px);
+  gap: 1.2cqw;
+}
+
+.stage[data-board="portrait"] .pause-eyebrow i {
+  width: 1.1cqw;
+  height: 1.1cqw;
+}
+
+.stage[data-board="portrait"] .pause-card h2 {
+  margin: 1.4cqw 0 1.8cqw;
+  font-size: clamp(28px, 7cqw, 40px);
+  line-height: 1.15;
+}
+
+.stage[data-board="portrait"] .pause-reason {
+  margin-bottom: 3.2cqw;
+  font-size: clamp(13px, 3cqw, 17px);
+  line-height: 1.7;
+}
+
+.stage[data-board="portrait"] .pause-key-guide {
+  gap: 2cqw;
+  padding: 2cqw 2.2cqw;
+  border-radius: 1.6cqw;
+  font-size: clamp(11px, 2.4cqw, 14px);
+  flex-wrap: wrap;
+}
+
+.stage[data-board="portrait"] .pause-key-guide kbd,
+.stage[data-board="portrait"] .pause-resume span {
+  min-width: 5.2cqw;
+  height: 4.6cqw;
+  padding: 0 1cqw;
+  border-radius: 0.9cqw;
+  font-size: clamp(9px, 2cqw, 11px);
+}
+
+.stage[data-board="portrait"] .pause-setting {
+  margin-top: 3cqw;
+  padding-top: 2.6cqw;
+}
+
+.stage[data-board="portrait"] .pause-choice-options .choice-option {
+  height: 8.5cqw;
+  border-radius: 1.2cqw;
+}
+
+.stage[data-board="portrait"] .pause-note {
+  margin-top: 1.4cqw;
+  font-size: clamp(9px, 2.1cqw, 11px);
+  line-height: 1.5;
+}
+
+.stage[data-board="portrait"] .pause-actions {
+  flex-direction: column;
+  gap: 2.4cqw;
+  margin-top: 4cqw;
+}
+
+.stage[data-board="portrait"] .pause-resume,
+.stage[data-board="portrait"] .pause-abandon {
+  flex: 0 0 auto;
+  width: 100%;
+  height: clamp(44px, 12cqw, 58px);
+  border-radius: 1.6cqw;
+  font-size: clamp(16px, 4cqw, 20px);
+}
+
+/* Portrait compositing: keep the canvas light and avoid live blur layers. */
+.stage[data-board="portrait"] .hud-cluster,
+.stage[data-board="portrait"] .toast,
+.stage[data-board="portrait"] .buff-card {
+  backdrop-filter: none;
+}
+
+body.is-mobile .topbar .mobile-pause {
+  backdrop-filter: none;
+}
+
+/* Give the portrait pause card more presence and a more phone-friendly type scale. */
+.stage[data-board="portrait"] .pause-card {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stage[data-board="portrait"] .pause-card h2 {
+  font-size: clamp(30px, 7.5cqw, 42px);
+}
+
+.stage[data-board="portrait"] .pause-reason {
+  font-size: clamp(14px, 3.2cqw, 18px);
+}
+
+.stage[data-board="portrait"] .pause-resume,
+.stage[data-board="portrait"] .pause-abandon {
+  font-size: clamp(17px, 4.2cqw, 21px);
+}
+
+/* Portrait launch hint sits below the full-height brick wall. */
+.stage[data-board="portrait"] .launch-hint {
+  top: 74%;
+}
+
+/* ============================================================
+   v11 — portrait 2/3 brick wall, safer timers and mobile type scale
+   ============================================================ */
+
+/* Portrait typography tokens, sized for a phone at arm's length. */
+.stage[data-board="portrait"] {
+  --pt-display: clamp(42px, 15.2cqw, 60px);
+  --pt-h1: clamp(30px, 7.4cqw, 42px);
+  --pt-h2: clamp(21px, 5.2cqw, 28px);
+  --pt-h3: clamp(16px, 4cqw, 20px);
+  --pt-body: clamp(14px, 3.2cqw, 17px);
+  --pt-label: clamp(13px, 3cqw, 16px);
+  --pt-meta: clamp(10px, 2.3cqw, 12px);
+  --pt-micro: clamp(9px, 2cqw, 11px);
+  --pt-hud-value: clamp(14px, 3.2cqw, 18px);
+  --pt-hud-label: clamp(8px, 1.9cqw, 10px);
+}
+
+.stage[data-board="portrait"] .game-title {
+  font-size: var(--pt-display);
+}
+
+.stage[data-board="portrait"] .eyebrow {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .panel-heading h2,
+.stage[data-board="portrait"] .leaderboard-title h3 {
+  font-size: var(--pt-h2);
+}
+
+.stage[data-board="portrait"] .panel-topline,
+.stage[data-board="portrait"] .panel-status,
+.stage[data-board="portrait"] .panel-credit,
+.stage[data-board="portrait"] .leaderboard-title > span,
+.stage[data-board="portrait"] .leaderboard-board-chip,
+.stage[data-board="portrait"] .leaderboard-col-head {
+  font-size: var(--pt-micro);
+}
+
+.stage[data-board="portrait"] .board-indicator {
+  font-size: var(--pt-body);
+}
+
+.stage[data-board="portrait"] .setting-head > span,
+.stage[data-board="portrait"] .player-row label {
+  font-size: var(--pt-label);
+}
+
+.stage[data-board="portrait"] .setting-head em,
+.stage[data-board="portrait"] .rail-label,
+.stage[data-board="portrait"] .leaderboard-title p,
+.stage[data-board="portrait"] .leaderboard-filters button {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .name-input-wrap input {
+  font-size: var(--pt-body);
+}
+
+.stage[data-board="portrait"] .name-input-wrap em,
+.stage[data-board="portrait"] .leaderboard-config,
+.stage[data-board="portrait"] .leaderboard-time {
+  font-size: var(--pt-micro);
+}
+
+.stage[data-board="portrait"] .start-label strong {
+  font-size: var(--pt-h2);
+}
+
+.stage[data-board="portrait"] .start-label small {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .leaderboard-row {
+  font-size: clamp(13px, 2.8cqw, 15px);
+}
+
+.stage[data-board="portrait"] .leaderboard-score {
+  font-size: clamp(14px, 3.2cqw, 17px);
+}
+
+.stage[data-board="portrait"] .leaderboard-empty {
+  font-size: var(--pt-body);
+}
+
+.stage[data-board="portrait"] .hud-label {
+  font-size: var(--pt-hud-label);
+}
+
+.stage[data-board="portrait"] .hud-stat strong,
+.stage[data-board="portrait"] #scoreValue {
+  font-size: var(--pt-hud-value);
+}
+
+.stage[data-board="portrait"] .hud-cluster {
+  padding: 1cqw 1.1cqw;
+  gap: 0.8cqw;
+}
+
+.stage[data-board="portrait"] .launch-copy strong,
+.stage[data-board="portrait"] .toast-copy strong {
+  font-size: var(--pt-body);
+}
+
+.stage[data-board="portrait"] .launch-copy small,
+.stage[data-board="portrait"] .toast-copy small {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .buff-name,
+.stage[data-board="portrait"] .buff-time {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .buff-icon {
+  font-size: var(--pt-micro);
+}
+
+/* Buff timers: a safe bottom band, 40% cards, centred for one or two. */
+.stage[data-board="portrait"] .buff-rail {
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  bottom: 3.5cqw;
+  padding: 0 4cqw;
+  gap: 2cqw;
+  transform: translateY(6px);
+}
+
+.stage[data-board="portrait"] .buff-rail.is-visible {
+  transform: translateY(0);
+}
+
+.stage[data-board="portrait"] .buff-card {
+  flex: 0 0 40%;
+  width: 40%;
+  max-width: 40%;
+  min-width: 0;
+  padding: 1cqw 1.4cqw 1.1cqw;
+  border-radius: 1.2cqw;
+}
+
+/* Pause text uses the shared portrait scale. */
+.stage[data-board="portrait"] .pause-card h2 {
+  font-size: var(--pt-h1);
+}
+
+.stage[data-board="portrait"] .pause-reason {
+  font-size: var(--pt-body);
+}
+
+.stage[data-board="portrait"] .pause-eyebrow,
+.stage[data-board="portrait"] .pause-note {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .pause-resume,
+.stage[data-board="portrait"] .pause-abandon {
+  font-size: var(--pt-label);
+}
+
+.stage[data-board="portrait"] .pause-key-guide {
+  font-size: var(--pt-meta);
+}
+
+/* Result screens: especially the failure view, at phone-reading size. */
+.stage[data-board="portrait"] .result-card {
+  width: min(92cqw, 430px);
+  max-height: calc(100% - 7cqw);
+  padding: 4.2cqw 4.3cqw 4cqw;
+  overflow-y: auto;
+  border-radius: 3cqw;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(92, 230, 255, 0.22) transparent;
+}
+
+.stage[data-board="portrait"] .result-card h2 {
+  font-size: var(--pt-h1);
+}
+
+.stage[data-board="portrait"] .result-copy {
+  font-size: var(--pt-body);
+  line-height: 1.6;
+}
+
+.stage[data-board="portrait"] .result-eyebrow,
+.stage[data-board="portrait"] .result-player,
+.stage[data-board="portrait"] .result-stats span,
+.stage[data-board="portrait"] .result-breakdown,
+.stage[data-board="portrait"] .result-breakdown b,
+.stage[data-board="portrait"] .result-meta,
+.stage[data-board="portrait"] .settlement-note {
+  font-size: var(--pt-meta);
+}
+
+.stage[data-board="portrait"] .settlement-note,
+.stage[data-board="portrait"] .result-meta {
+  font-size: var(--pt-micro);
+}
+
+.stage[data-board="portrait"] .result-stats strong {
+  font-size: var(--pt-h2);
+}
+
+.stage[data-board="portrait"] .result-actions {
+  flex-direction: column;
+  gap: 2.4cqw;
+  margin-top: 4cqw;
+}
+
+.stage[data-board="portrait"] .result-actions .button-primary,
+.stage[data-board="portrait"] .result-actions .button-ghost {
+  flex: 0 0 auto;
+  width: 100%;
+  height: clamp(44px, 12cqw, 58px);
+  border-radius: 1.6cqw;
+  font-size: var(--pt-label);
+}
+
+.stage[data-board="portrait"] .result-actions .button-primary span {
+  font-size: var(--pt-meta);
+}
+
+/* Delete confirmation uses the same reading scale. */
+.stage[data-board="portrait"] .confirm-card {
+  width: min(92cqw, 430px);
+  padding: 4.2cqw 4.3cqw 4cqw;
+  border-radius: 3cqw;
+}
+
+.stage[data-board="portrait"] .confirm-card h2 {
+  font-size: var(--pt-h2);
+}
+
+.stage[data-board="portrait"] .confirm-card p {
+  max-width: none;
+  font-size: var(--pt-body);
+  line-height: 1.7;
+}
+
+.stage[data-board="portrait"] .confirm-actions {
+  flex-direction: column;
+  gap: 2.4cqw;
+}
+
+.stage[data-board="portrait"] .confirm-actions .button-primary,
+.stage[data-board="portrait"] .confirm-actions .button-ghost {
+  flex: 0 0 auto;
+  width: 100%;
+  height: clamp(42px, 11.5cqw, 54px);
+  font-size: var(--pt-label);
+}
+
+/* Keep the setup panel and ranking boxes exactly the same responsive width. */
+.stage[data-board="portrait"] .menu .menu-content,
+.stage[data-board="portrait"] .menu-panel,
+.stage[data-board="portrait"] .menu .leaderboard {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Timer cards are 40% of the full horizontal control area. */
+.stage[data-board="portrait"] .buff-rail {
+  bottom: 4.5cqw;
+  padding: 0;
+  gap: 2cqw;
+}
+
+.stage[data-board="portrait"] .buff-card {
+  flex: 0 0 40cqw;
+  width: 40cqw;
+  max-width: 40cqw;
+}
+
+.stage[data-board="portrait"] .buff-name {
+  font-size: var(--pt-label);
+}
+
+.stage[data-board="portrait"] .buff-time {
+  font-size: var(--pt-meta);
+}
+
+/* Slightly larger HUD type where the single-row layout has room. */
+.stage[data-board="portrait"] {
+  --pt-hud-value: clamp(15px, 3.5cqw, 19px);
+  --pt-hud-label: clamp(9px, 2cqw, 10px);
+}
+
+.stage[data-board="portrait"] .hud-cluster {
+  padding: 0.9cqw 1cqw;
+  gap: 0.75cqw;
+}
+
+/* Buttons are actions, not labels: keep them firmly in the 16–19px band. */
+.stage[data-board="portrait"] .pause-resume,
+.stage[data-board="portrait"] .pause-abandon {
+  font-size: clamp(16px, 4cqw, 20px);
+}
+
+.stage[data-board="portrait"] .result-actions .button-primary,
+.stage[data-board="portrait"] .result-actions .button-ghost {
+  font-size: clamp(15px, 3.6cqw, 19px);
+}
+
+.stage[data-board="portrait"] .result-actions .button-primary span {
+  font-size: var(--pt-label);
+}
+
+.stage[data-board="portrait"] .confirm-actions .button-primary,
+.stage[data-board="portrait"] .confirm-actions .button-ghost {
+  font-size: clamp(15px, 3.6cqw, 19px);
+}
+
+.stage[data-board="portrait"] .buff-top {
+  gap: 1.2cqw;
+}
+
+/* Dense metadata in the portrait ranking still gets a readable floor. */
+.stage[data-board="portrait"] .leaderboard-rank,
+.stage[data-board="portrait"] .leaderboard-tag,
+.stage[data-board="portrait"] .menu-footer,
+.stage[data-board="portrait"] .leaderboard-delete {
+  font-size: var(--pt-micro);
+}
+
+.stage[data-board="portrait"] .result-meta {
+  font-size: var(--pt-meta);
+}
+
+/* On a 320px phone the HUD must remain inside the stage. */
+@container (max-width: 340px) {
+  .stage[data-board="portrait"] .hud-stat strong,
+  .stage[data-board="portrait"] #scoreValue {
+    font-size: 14px;
+  }
+
+  .stage[data-board="portrait"] .hud-label {
+    font-size: 8px;
+  }
+
+  .stage[data-board="portrait"] .hud-cluster {
+    padding: 0.55cqw 0.65cqw;
+    gap: 0.4cqw;
+  }
+
+  .stage[data-board="portrait"] .hud-stat {
+    min-width: 5.2cqw;
+  }
+
+  .stage[data-board="portrait"] .hud-stat-small {
+    min-width: 3cqw;
+  }
+
+  .stage[data-board="portrait"] .leaderboard-delete {
+    height: 30px;
+    padding: 0 2.4cqw;
+  }
+}
+
+/* The rank stays readable while the table remains within a 320px screen. */
+.stage[data-board="portrait"] .leaderboard-rank {
+  font-size: clamp(12px, 2.7cqw, 14px);
+}
+
+.stage[data-board="portrait"] .settlement-note {
+  font-size: var(--pt-meta);
+}
+
+/* ============================================================
+   v12 — portrait start CTA, flat rankings with pagination
+   ============================================================ */
+
+.stage[data-board="portrait"] .menu-panel .start-button {
+  height: clamp(54px, 14cqw, 68px);
+  justify-content: center;
+}
+
+.stage[data-board="portrait"] .start-label {
+  align-items: center;
+  gap: 0.6cqw;
+  text-align: center;
+}
+
+.stage[data-board="portrait"] .start-button .start-arrow {
+  position: absolute;
+  top: 50%;
+  right: 2.2cqw;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+/* Portrait rankings flow with the page; no nested scroll area. */
+.stage[data-board="portrait"] .leaderboard-list {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  overscroll-behavior: auto;
+  scrollbar-width: none;
+}
+
+.stage[data-board="portrait"] .leaderboard-list::-webkit-scrollbar {
+  display: none;
+}
+
+.leaderboard-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2cqw;
+  margin-top: 2.4cqw;
+}
+
+.leaderboard-pagination[hidden] {
+  display: none;
+}
+
+.stage[data-board="portrait"] .leaderboard-pagination {
+  gap: clamp(12px, 3.2cqw, 18px);
+  margin-top: clamp(14px, 3.4cqw, 20px);
+}
+
+.leaderboard-page-button {
+  min-width: 7.2cqw;
+  height: 3.1cqw;
+  padding: 0 1.2cqw;
+  border: 1px solid rgba(92, 230, 255, 0.19);
+  border-radius: 0.55cqw;
+  color: #b9d9e8;
+  background: rgba(9, 25, 40, 0.8);
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 0.62cqw, 11px);
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+.leaderboard-page-button:hover:not(:disabled) {
+  border-color: rgba(92, 230, 255, 0.4);
+  color: #f2fcff;
+  background: rgba(18, 46, 67, 0.9);
+}
+
+.leaderboard-page-button:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.stage[data-board="portrait"] .leaderboard-page-button {
+  min-width: 76px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  font-size: var(--pt-label);
+}
+
+.leaderboard-page-info {
+  color: #7f9aae;
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 0.6cqw, 11px);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.stage[data-board="portrait"] .leaderboard-page-info {
+  font-size: var(--pt-meta);
+}
+
+/* Numeric durability values on the portrait rail. */
+.stage[data-board="portrait"] .setting-head em {
+  white-space: nowrap;
+}
+
+/* A little more breathing room inside the portrait primary CTA. */
+.stage[data-board="portrait"] .menu-panel .start-button {
+  height: clamp(60px, 15.4cqw, 74px);
+}
+
+/* Desktop portrait keeps the v12 hint position. */
+.stage[data-board="portrait"] .launch-hint {
+  top: 70%;
+}
+
+/* The phone two-step hint sits a little higher, away from the stuck ball. */
+body.is-mobile .stage[data-board="portrait"] .launch-hint {
+  top: 68.5%;
+}
