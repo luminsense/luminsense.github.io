@@ -2017,71 +2017,6 @@ button:focus-visible {
   }
 }
 
-@media (max-width: 760px) and (orientation: portrait) {
-  .orientation-gate {
-    position: absolute;
-    inset: 0;
-    z-index: 60;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2.2cqw;
-    padding: 8cqw;
-    text-align: center;
-    background:
-      radial-gradient(ellipse 85% 80% at 50% 45%, rgba(18, 51, 76, 0.7), transparent 74%),
-      rgba(4, 9, 16, 0.97);
-    backdrop-filter: blur(6px);
-  }
-
-  .orientation-icon {
-    display: grid;
-    place-items: center;
-    width: 12cqw;
-    height: 12cqw;
-    margin-bottom: 1cqw;
-    border: 1px solid rgba(92, 230, 255, 0.28);
-    border-radius: 3cqw;
-    color: var(--cyan);
-    background: rgba(33, 106, 137, 0.13);
-    box-shadow: 0 0 30px rgba(41, 166, 209, 0.1);
-  }
-
-  .orientation-icon svg {
-    width: 7.5cqw;
-    height: 7.5cqw;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .gate-eyebrow {
-    color: #648097;
-    font-family: var(--font-mono);
-    font-size: 2.2cqw;
-    letter-spacing: 0.18em;
-  }
-
-  .orientation-gate strong {
-    color: #f2fbff;
-    font-size: 5.3cqw;
-    font-weight: 620;
-    letter-spacing: 0.06em;
-  }
-
-  .orientation-gate p {
-    max-width: 72cqw;
-    margin: 0;
-    color: #788a9f;
-    font-size: 3cqw;
-    line-height: 1.7;
-    letter-spacing: 0.03em;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -5505,11 +5440,7 @@ body.is-mobile .pause-actions {
 }
 
 /* Mobile landscape is not supported: cover the whole viewport. */
-body:not(.is-mobile-landscape) .orientation-gate {
-  display: none !important;
-}
-
-body.is-mobile-landscape .orientation-gate {
+body.is-mobile .orientation-gate {
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -5526,7 +5457,7 @@ body.is-mobile-landscape .orientation-gate {
   backdrop-filter: blur(8px);
 }
 
-body.is-mobile-landscape .orientation-icon {
+body.is-mobile .orientation-icon {
   display: grid;
   place-items: center;
   width: clamp(64px, 15vw, 96px);
@@ -5539,7 +5470,7 @@ body.is-mobile-landscape .orientation-icon {
   box-shadow: 0 0 30px rgba(41, 166, 209, 0.12);
 }
 
-body.is-mobile-landscape .orientation-icon svg {
+body.is-mobile .orientation-icon svg {
   width: 54%;
   height: 54%;
   fill: none;
@@ -5549,21 +5480,21 @@ body.is-mobile-landscape .orientation-icon svg {
   stroke-linejoin: round;
 }
 
-body.is-mobile-landscape .gate-eyebrow {
+body.is-mobile .gate-eyebrow {
   color: #648097;
   font-family: var(--font-mono);
   font-size: clamp(9px, 1.9vw, 12px);
   letter-spacing: 0.18em;
 }
 
-body.is-mobile-landscape .orientation-gate strong {
+body.is-mobile .orientation-gate strong {
   color: #f2fbff;
   font-size: clamp(24px, 5.4vw, 40px);
   font-weight: 620;
   letter-spacing: 0.04em;
 }
 
-body.is-mobile-landscape .orientation-gate p {
+body.is-mobile .orientation-gate p {
   max-width: 620px;
   margin: 0;
   color: #8093a8;
@@ -6270,4 +6201,32 @@ body.is-mobile .topbar .mobile-pause {
 /* The phone two-step hint sits a little higher, away from the stuck ball. */
 body.is-mobile .stage[data-board="portrait"] .launch-hint {
   top: 68.5%;
+}
+
+/* ============================================================
+   v14 — viewport-driven mobile orientation gate
+   ============================================================ */
+
+/* A phone in portrait always gets the normal start page. This guard also
+   neutralises a stale `is-mobile-landscape` class from an early viewport
+   read or a browser that reports transient dimensions while loading. */
+@media (orientation: portrait) {
+  body.is-mobile .orientation-gate,
+  body.is-mobile.is-mobile-landscape .orientation-gate {
+    display: none !important;
+  }
+}
+
+/* A phone in landscape gets only the rotation gate; the start page cannot
+   be reached or tapped behind it. */
+@media (orientation: landscape) {
+  body.is-mobile .menu {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  body.is-mobile .mobile-pause {
+    display: none !important;
+  }
 }

@@ -1074,8 +1074,15 @@
     return window.innerWidth < DESKTOP_PORTRAIT_MAX_WIDTH ? "portrait" : "landscape";
   }
 
+  function isPortraitViewport() {
+    const viewport = window.visualViewport;
+    const width = viewport?.width || window.innerWidth || document.documentElement.clientWidth || 0;
+    const height = viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0;
+    return height >= width;
+  }
+
   function syncDeviceClasses() {
-    const landscape = window.innerWidth > window.innerHeight;
+    const landscape = !isPortraitViewport();
     document.body.classList.toggle("is-mobile", game.isMobile);
     document.body.classList.toggle(
       "is-mobile-landscape",
@@ -1103,7 +1110,7 @@
     dom.boardIndicator.dataset.board = game.menuBoard;
     dom.boardIndicator.classList.toggle("is-mobile", game.isMobile);
     dom.boardStatusText.textContent = game.isMobile
-      ? "手机端仅能竖屏进行游戏"
+      ? (portrait ? "手机端竖屏模式 · 已就绪" : "手机端仅支持竖屏")
       : `下一局游戏为${portrait ? "竖屏" : "横屏"}版`;
   }
 
@@ -4252,7 +4259,7 @@
 
   function handleViewportChange() {
     syncDeviceClasses();
-    const portrait = window.innerWidth <= window.innerHeight;
+    const portrait = isPortraitViewport();
     if (
       game.isMobile
       && !portrait
@@ -4285,6 +4292,19 @@
   window.addEventListener("orientationchange", () => {
     window.setTimeout(scheduleViewportChange, 120);
   });
+
+  // Mobile browsers can report transient dimensions while the address bar
+  // settles. Re-read orientation after load, page restore and visual viewport
+  // changes so a portrait phone can never be left behind a landscape gate.
+  window.addEventListener("pageshow", scheduleViewportChange);
+  window.addEventListener("load", scheduleViewportChange, { once: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", scheduleViewportChange, { passive: true });
+  }
+  if (window.screen?.orientation?.addEventListener) {
+    window.screen.orientation.addEventListener("change", scheduleViewportChange);
+  }
+  window.setTimeout(scheduleViewportChange, 260);
 
   dom.mobilePauseButton.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
