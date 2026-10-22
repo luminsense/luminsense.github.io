@@ -6247,3 +6247,42 @@ body.is-mobile .stage[data-board="portrait"] {
   width: min(calc(100vw - 4px), calc((100dvh - 50px) * 0.5625));
   border-radius: 14px;
 }
+
+/* Version line sits at the very bottom of the start screen in every mode. */
+.menu-version {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55cqw;
+  margin-top: 0.55cqw;
+  padding-top: 0.45cqw;
+  border-top: 1px solid rgba(106, 147, 185, 0.1);
+  color: #455b6e;
+  font-family: var(--font-mono);
+  font-size: 0.5cqw;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.menu-version strong {
+  color: #7892a6;
+  font-weight: 500;
+}
+
+.stage[data-board="portrait"] .menu-version {
+  margin-top: 2.2cqw;
+  padding-top: 1.8cqw;
+  font-size: var(--pt-micro);
+  letter-spacing: 0.08em;
+}
+
+body.is-mobile .menu-version {
+  justify-content: center;
+}
+
+.stage[data-board="portrait"] .menu-version {
+  gap: 1.2cqw;
+}
