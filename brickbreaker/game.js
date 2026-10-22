@@ -188,6 +188,12 @@
     [1, 5],
     [1, 4],
     [1, 4],
+    [1, 4],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
+    [1, 3],
   ];
 
   const MOBILE_PORTRAIT_BOARD_CONFIG = {
@@ -204,12 +210,13 @@
     brick: {
       ...BOARD_CONFIGS.portrait.brick,
       cols: 8,
-      rows: 15,
+      rows: 21,
       padX: 8,
       gapX: 3,
-      gapY: 7,
+      gapY: 6.985,
       topOffset: 38,
-      echoFrom: 11,
+      echoFrom: 16,
+      heightRatio: 1 / 3,
       ranges: MOBILE_PORTRAIT_ROW_HP_RANGES,
     },
   };
@@ -1210,14 +1217,13 @@
     // randomized per round, so the layout is predictable in style but varies.
     const channelOffset = randomInt(1, cols - 2);
     const channelDirection = Math.random() < 0.5 ? 1 : -1;
-    const channelAt = (row) => (
-      (channelOffset + row * channelDirection + cols * 2) % cols
-    );
+    const wrapCol = (value) => ((value % cols) + cols) % cols;
+    const channelAt = (row) => wrapCol(channelOffset + row * channelDirection);
 
     for (let row = 0; row < rows; row += 1) {
       const [minHp, maxHp] = ranges[Math.min(row, ranges.length - 1)];
       const channelCol = channelAt(row);
-      const echoCol = (channelCol + channelDirection * 2 + cols * 2) % cols;
+      const echoCol = wrapCol(channelCol + channelDirection * 2);
 
       for (let col = 0; col < cols; col += 1) {
         // The offset echo keeps a roughly constant deliberate-open share while
